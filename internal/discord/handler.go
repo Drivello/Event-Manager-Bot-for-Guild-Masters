@@ -157,36 +157,50 @@ func PublishEventMessage(s *discordgo.Session, event *storage.Event) error {
 			},
 		},
 		Footer: &discordgo.MessageEmbedFooter{
-			Text: "Selecciona tu rol para inscribirte",
+			Text: "Seleccioná tu rol para inscribirte",
 		},
 		Timestamp: time.Now().Format(time.RFC3339),
 	}
 
-	// Agregar campo de inscripciones
+	// Campo de inscripciones
 	signupsText := buildSignupsText(event)
+	if strings.TrimSpace(signupsText) == "" {
+		signupsText = "Todavía no hay inscripciones."
+	}
 	embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
 		Name:   "Inscripciones",
 		Value:  signupsText,
 		Inline: false,
 	})
 
-	// Crear botones para cada rol
-	// Discord permite máximo 5 botones por fila
+	// Crear botones para cada rol (máx 5 por fila)
 	var components []discordgo.MessageComponent
 	var currentRow discordgo.ActionsRow
 
 	for i, role := range event.Roles {
+		// Emoji va en el label, no en el campo Emoji del botón
+		label := role.Name
+		if role.Emoji != "" {
+			label = fmt.Sprintf("%s %s", role.Emoji, role.Name)
+		}
+
 		button := discordgo.Button{
-			Label:    role.Name,
+			Label:    label,
 			Style:    discordgo.PrimaryButton,
 			CustomID: fmt.Sprintf("signup_%s_%s", event.ID, role.Name),
 		}
+
 		currentRow.Components = append(currentRow.Components, button)
 
-		// Si llegamos a 5 botones o es el último rol, crear nueva fila
-		if len(currentRow.Components) == 5 || i == len(event.Roles)-1 {
+		// Si llegamos a 5 botones, cerramos la fila
+		if len(currentRow.Components) == 5 {
 			components = append(components, currentRow)
 			currentRow = discordgo.ActionsRow{}
+		}
+
+		// Último rol: si quedó algo en la fila, la agregamos
+		if i == len(event.Roles)-1 && len(currentRow.Components) > 0 {
+			components = append(components, currentRow)
 		}
 	}
 
@@ -194,7 +208,7 @@ func PublishEventMessage(s *discordgo.Session, event *storage.Event) error {
 	cancelRow := discordgo.ActionsRow{
 		Components: []discordgo.MessageComponent{
 			discordgo.Button{
-				Label:    "Cancelar Inscripción",
+				Label:    "Cancelar inscripción",
 				Style:    discordgo.DangerButton,
 				CustomID: fmt.Sprintf("cancel_%s", event.ID),
 			},
@@ -206,13 +220,16 @@ func PublishEventMessage(s *discordgo.Session, event *storage.Event) error {
 		Embeds:     []*discordgo.MessageEmbed{embed},
 		Components: components,
 	})
-
 	if err != nil {
-		return err
+		return fmt.Errorf("error enviando mensaje a Discord: %w", err)
 	}
 
 	event.MessageID = msg.ID
-	return storage.Store.SaveEvent(event)
+	if err := storage.Store.SaveEvent(event); err != nil {
+		return fmt.Errorf("error guardando evento: %w", err)
+	}
+
+	return nil
 }
 
 // buildSignupsText construye el texto de inscripciones
@@ -453,8 +470,8 @@ func UpdateEventMessage(s *discordgo.Session, event *storage.Event) {
 	s.ChannelMessageEditComplex(&discordgo.MessageEdit{
 		Channel:    event.Channel,
 		ID:         event.MessageID,
-		Embeds:     []*discordgo.MessageEmbed{embed},
-		Components: components,
+		Embeds:     &[]*discordgo.MessageEmbed{embed},
+		Components: &components,
 	})
 }
 
