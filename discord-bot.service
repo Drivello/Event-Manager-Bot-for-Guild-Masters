@@ -1,0 +1,30 @@
+[Unit]
+Description=Discord Event Bot para MMO Guild
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/discord-event-bot
+ExecStart=/home/pi/discord-event-bot/discord-event-bot
+Restart=always
+RestartSec=10
+
+# Variables de entorno (opcional, si no usas archivo .env)
+# Environment="DISCORD_TOKEN=tu_token"
+# Environment="GUILD_ID=tu_guild_id"
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=discord-bot
+
+# Seguridad
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/home/pi/discord-event-bot/data
+
+[Install]
+WantedBy=multi-user.target
