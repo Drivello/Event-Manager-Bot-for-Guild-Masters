@@ -94,6 +94,10 @@ func (s *EventStore) SaveEvent(event *Event) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	return s.saveEventNoLock(event)
+}
+
+func (s *EventStore) saveEventNoLock(event *Event) error {
 	s.events[event.ID] = event
 
 	filename := filepath.Join(eventsDir, fmt.Sprintf("%s.json", event.ID))
@@ -224,7 +228,7 @@ func (s *EventStore) AddSignup(eventID, userID, username, role string) error {
 
 	event.Signups[role] = append(event.Signups[role], signup)
 
-	return s.SaveEvent(event)
+	return s.saveEventNoLock(event)
 }
 
 // RemoveSignup elimina una inscripción
@@ -245,7 +249,7 @@ func (s *EventStore) RemoveSignup(eventID, userID, role string) error {
 		}
 	}
 
-	return s.SaveEvent(event)
+	return s.saveEventNoLock(event)
 }
 
 // ConfirmSignup confirma una inscripción
@@ -267,7 +271,7 @@ func (s *EventStore) ConfirmSignup(eventID, userID, role, confirmedBy string) er
 		}
 	}
 
-	return s.SaveEvent(event)
+	return s.saveEventNoLock(event)
 }
 
 // CreateEventFromTemplate crea un evento basado en un template
@@ -344,5 +348,5 @@ func (s *EventStore) AddSignupWithClass(eventID, userID, username, role, class s
 
 	event.Signups[role] = append(event.Signups[role], signup)
 
-	return s.SaveEvent(event)
+	return s.saveEventNoLock(event)
 }
