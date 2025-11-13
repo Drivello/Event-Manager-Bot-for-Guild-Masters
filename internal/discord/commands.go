@@ -46,6 +46,12 @@ var (
 					Required:    false,
 				},
 				{
+					Type:        discordgo.ApplicationCommandOptionBoolean,
+					Name:        "discord_event",
+					Description: "Crear también el evento oficial de Discord (Guild Scheduled Event)",
+					Required:    false,
+				},
+				{
 					Type:        discordgo.ApplicationCommandOptionInteger,
 					Name:        "repeat_days",
 					Description: "Cada cuántos días se repite el evento (0 o vacío = no se repite)",

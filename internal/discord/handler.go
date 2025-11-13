@@ -41,6 +41,10 @@ func handleCreateEvent(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			repeatEveryDays = 0
 		}
 	}
+	createDiscordEvent := false
+	if deOpt, ok := optionMap["discord_event"]; ok {
+		createDiscordEvent = deOpt.BoolValue()
+	}
 
 	// Template opcional
 	templateName := ""
@@ -70,18 +74,19 @@ func handleCreateEvent(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	// Crear evento base
 	event := &storage.Event{
-		ID:               uuid.New().String(),
-		Name:             nombre,
-		Type:             tipo,
-		Description:      descripcion,
-		DateTime:         fecha,
-		Channel:          channelID,
-		Status:           "active",
-		CreatedAt:        time.Now(),
-		CreatedBy:        i.Member.User.ID,
-		AllowMultiSignup: false,
-		Signups:          make(map[string][]storage.Signup),
-		RepeatEveryDays:  repeatEveryDays,
+		ID:                 uuid.New().String(),
+		Name:               nombre,
+		Type:               tipo,
+		Description:        descripcion,
+		DateTime:           fecha,
+		Channel:            channelID,
+		Status:             "active",
+		CreatedAt:          time.Now(),
+		CreatedBy:          i.Member.User.ID,
+		AllowMultiSignup:   false,
+		Signups:            make(map[string][]storage.Signup),
+		RepeatEveryDays:    repeatEveryDays,
+		CreateDiscordEvent: createDiscordEvent,
 	}
 
 	// Si se especificó un template, usarlo
@@ -127,8 +132,8 @@ func handleCreateEvent(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		log.Printf("Error publicando mensaje: %v", err)
 	}
 
-	// Crear evento oficial de Discord si está habilitado
-	if config.AppConfig.EnableDiscordEvents {
+	// Crear evento oficial de Discord solo si está habilitado globalmente y el evento lo requiere
+	if config.AppConfig.EnableDiscordEvents && event.CreateDiscordEvent {
 		CreateDiscordScheduledEvent(s, event)
 	}
 
@@ -155,7 +160,7 @@ func PublishEventMessage(s *discordgo.Session, event *storage.Event) error {
 			},
 			{
 				Name:   "Fecha y Hora",
-				Value:  event.DateTime.Format("02/01/2006 15:04"),
+				Value:  fmt.Sprintf("<t:%d:F>", event.DateTime.Unix()),
 				Inline: true,
 			},
 			{
@@ -241,6 +246,14 @@ func PublishEventMessage(s *discordgo.Session, event *storage.Event) error {
 	}
 
 	event.MessageID = msg.ID
+
+	threadName := fmt.Sprintf("Chat - %s", event.Name)
+	if thread, err := s.MessageThreadStart(event.Channel, msg.ID, threadName, 1440); err != nil {
+		log.Printf("Error creando hilo para evento %s: %v", event.ID, err)
+	} else if thread != nil {
+		event.ThreadID = thread.ID
+	}
+
 	if err := storage.Store.SaveEvent(event); err != nil {
 		return fmt.Errorf("error guardando evento: %w", err)
 	}
@@ -431,7 +444,7 @@ func UpdateEventMessage(s *discordgo.Session, event *storage.Event) {
 			},
 			{
 				Name:   "Fecha y Hora",
-				Value:  event.DateTime.Format("02/01/2006 15:04"),
+				Value:  fmt.Sprintf("<t:%d:F>", event.DateTime.Unix()),
 				Inline: true,
 			},
 			{
@@ -578,7 +591,7 @@ func handleListEvents(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	for _, event := range events {
 		embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
 			Name:   event.Name,
-			Value:  fmt.Sprintf("ID: `%s`\nTipo: %s\nFecha: %s", event.ID, event.Type, event.DateTime.Format("02/01/2006 15:04")),
+			Value:  fmt.Sprintf("ID: `%s`\nTipo: %s\nFecha: <t:%d:F>", event.ID, event.Type, event.DateTime.Unix()),
 			Inline: false,
 		})
 	}

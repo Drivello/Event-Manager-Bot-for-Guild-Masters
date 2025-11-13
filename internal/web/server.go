@@ -101,6 +101,7 @@ func handleCreateEventPost(c *gin.Context) {
 	channel := c.PostForm("channel")
 	templateName := c.PostForm("template")
 	repeatDaysStr := c.PostForm("repeat_days")
+	createDiscordEvent := c.PostForm("discord_event") == "1"
 	repeatEveryDays := 0
 	if repeatDaysStr != "" {
 		if v, err := strconv.Atoi(repeatDaysStr); err == nil && v > 0 {
@@ -125,18 +126,19 @@ func handleCreateEventPost(c *gin.Context) {
 
 	// Crear evento base
 	event := &storage.Event{
-		ID:               uuid.New().String(),
-		Name:             nombre,
-		Type:             tipo,
-		Description:      descripcion,
-		DateTime:         fecha,
-		Channel:          channel,
-		Status:           "active",
-		CreatedAt:        time.Now(),
-		CreatedBy:        "admin_web",
-		AllowMultiSignup: false,
-		Signups:          make(map[string][]storage.Signup),
-		RepeatEveryDays:  repeatEveryDays,
+		ID:                 uuid.New().String(),
+		Name:               nombre,
+		Type:               tipo,
+		Description:        descripcion,
+		DateTime:           fecha,
+		Channel:            channel,
+		Status:             "active",
+		CreatedAt:          time.Now(),
+		CreatedBy:          "admin_web",
+		AllowMultiSignup:   false,
+		Signups:            make(map[string][]storage.Signup),
+		RepeatEveryDays:    repeatEveryDays,
+		CreateDiscordEvent: createDiscordEvent,
 	}
 
 	// Si se especificó un template, usarlo
@@ -179,7 +181,7 @@ func handleCreateEventPost(c *gin.Context) {
 			log.Printf("Error publicando en Discord: %v", err)
 		}
 
-		if config.AppConfig.EnableDiscordEvents {
+		if config.AppConfig.EnableDiscordEvents && event.CreateDiscordEvent {
 			discord.CreateDiscordScheduledEvent(discord.Session, event)
 		}
 	}
