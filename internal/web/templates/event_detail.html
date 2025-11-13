@@ -176,6 +176,9 @@
             <p><strong>📢 Canal:</strong> {{ .event.Channel }}</p>
             <p><strong>✅ Estado:</strong> {{ .event.Status }}</p>
             <p><strong>👤 Creado por:</strong> {{ .event.CreatedBy }}</p>
+            {{if gt .event.RepeatEveryDays 0}}
+            <p><strong>🔁 Recurrente:</strong> Cada {{ .event.RepeatEveryDays }} días</p>
+            {{end}}
         </div>
 
         <div class="signups-section">

@@ -147,7 +147,10 @@
                 <div class="event-info">
                     <strong>Fecha:</strong> {{.DateTime.Format "02/01/2006 15:04"}}<br>
                     <strong>ID:</strong> <code>{{.ID}}</code><br>
-                    <strong>Estado:</strong> {{.Status}}
+                    <strong>Estado:</strong> {{.Status}}<br>
+                    {{if gt .RepeatEveryDays 0}}
+                    <strong>Recurrencia:</strong> Cada {{.RepeatEveryDays}} días
+                    {{end}}
                 </div>
                 <div class="event-actions">
                     <a href="/events/{{.ID}}" class="btn btn-small">Ver Detalles</a>

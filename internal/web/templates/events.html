@@ -113,7 +113,12 @@
                     <td><strong>{{.Name}}</strong></td>
                     <td>{{.Type}}</td>
                     <td>{{.DateTime.Format "02/01/2006 15:04"}}</td>
-                    <td><span class="status-badge status-{{.Status}}">{{.Status}}</span></td>
+                    <td>
+                        <span class="status-badge status-{{.Status}}">{{.Status}}</span>
+                        {{if gt .RepeatEveryDays 0}}
+                        <br>Cada {{.RepeatEveryDays}} días
+                        {{end}}
+                    </td>
                     <td><a href="/events/{{.ID}}" class="btn">Ver Detalles</a></td>
                 </tr>
                 {{end}}

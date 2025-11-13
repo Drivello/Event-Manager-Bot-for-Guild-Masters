@@ -45,6 +45,12 @@ var (
 					Description: "Canal donde se publicará el evento",
 					Required:    false,
 				},
+				{
+					Type:        discordgo.ApplicationCommandOptionInteger,
+					Name:        "repeat_days",
+					Description: "Cada cuántos días se repite el evento (0 o vacío = no se repite)",
+					Required:    false,
+				},
 			},
 		},
 		{

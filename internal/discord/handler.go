@@ -34,6 +34,13 @@ func handleCreateEvent(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	tipo := optionMap["tipo"].StringValue()
 	fechaStr := optionMap["fecha"].StringValue()
 	descripcion := optionMap["descripcion"].StringValue()
+	repeatEveryDays := 0
+	if repeatOpt, ok := optionMap["repeat_days"]; ok {
+		repeatEveryDays = int(repeatOpt.IntValue())
+		if repeatEveryDays < 0 {
+			repeatEveryDays = 0
+		}
+	}
 
 	// Template opcional
 	templateName := ""
@@ -74,6 +81,7 @@ func handleCreateEvent(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		CreatedBy:        i.Member.User.ID,
 		AllowMultiSignup: false,
 		Signups:          make(map[string][]storage.Signup),
+		RepeatEveryDays:  repeatEveryDays,
 	}
 
 	// Si se especificó un template, usarlo
@@ -160,6 +168,14 @@ func PublishEventMessage(s *discordgo.Session, event *storage.Event) error {
 			Text: "Seleccioná tu rol para inscribirte",
 		},
 		Timestamp: time.Now().Format(time.RFC3339),
+	}
+
+	if event.RepeatEveryDays > 0 {
+		embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+			Name:   "Recurrencia",
+			Value:  fmt.Sprintf("Cada %d días", event.RepeatEveryDays),
+			Inline: true,
+		})
 	}
 
 	// Campo de inscripciones
@@ -433,6 +449,14 @@ func UpdateEventMessage(s *discordgo.Session, event *storage.Event) {
 			Text: "Selecciona tu rol para inscribirte",
 		},
 		Timestamp: time.Now().Format(time.RFC3339),
+	}
+
+	if event.RepeatEveryDays > 0 {
+		embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+			Name:   "Recurrencia",
+			Value:  fmt.Sprintf("Cada %d días", event.RepeatEveryDays),
+			Inline: true,
+		})
 	}
 
 	// Crear botones para cada rol

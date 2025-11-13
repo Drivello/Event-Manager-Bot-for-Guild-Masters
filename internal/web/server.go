@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -99,6 +100,13 @@ func handleCreateEventPost(c *gin.Context) {
 	descripcion := c.PostForm("descripcion")
 	channel := c.PostForm("channel")
 	templateName := c.PostForm("template")
+	repeatDaysStr := c.PostForm("repeat_days")
+	repeatEveryDays := 0
+	if repeatDaysStr != "" {
+		if v, err := strconv.Atoi(repeatDaysStr); err == nil && v > 0 {
+			repeatEveryDays = v
+		}
+	}
 
 	templates := storage.Templates.GetAllTemplates()
 
@@ -128,6 +136,7 @@ func handleCreateEventPost(c *gin.Context) {
 		CreatedBy:        "admin_web",
 		AllowMultiSignup: false,
 		Signups:          make(map[string][]storage.Signup),
+		RepeatEveryDays:  repeatEveryDays,
 	}
 
 	// Si se especificó un template, usarlo

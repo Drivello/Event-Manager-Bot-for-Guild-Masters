@@ -27,7 +27,11 @@ func checkAndSendReminders() {
 	now := time.Now()
 
 	for _, event := range events {
-		// Enviar recordatorio 15 minutos antes
+		if event.RepeatEveryDays > 0 {
+			handleRecurringEventReminder(event, now)
+			continue
+		}
+
 		reminderTime := event.DateTime.Add(-15 * time.Minute)
 
 		if now.After(reminderTime) && !event.ReminderSent {
@@ -36,10 +40,37 @@ func checkAndSendReminders() {
 			storage.Store.SaveEvent(event)
 		}
 
-		// Marcar como completado si ya pasó
 		if now.After(event.DateTime.Add(2 * time.Hour)) {
 			event.Status = "completed"
 			storage.Store.SaveEvent(event)
+		}
+	}
+}
+
+func handleRecurringEventReminder(event *storage.Event, now time.Time) {
+	changed := false
+
+	for now.After(event.DateTime.Add(2 * time.Hour)) {
+		event.DateTime = event.DateTime.Add(time.Duration(event.RepeatEveryDays) * 24 * time.Hour)
+		event.ReminderSent = false
+		changed = true
+	}
+
+	if !event.ReminderSent {
+		windowStart := event.DateTime.Add(-1 * time.Minute)
+		windowEnd := event.DateTime.Add(1 * time.Minute)
+
+		if now.After(windowStart) && now.Before(windowEnd) {
+			sendReminder(Session, event)
+			event.ReminderSent = true
+			changed = true
+		}
+	}
+
+	if changed {
+		storage.Store.SaveEvent(event)
+		if Session != nil && event.MessageID != "" {
+			UpdateEventMessage(Session, event)
 		}
 	}
 }
