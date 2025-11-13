@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .title }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #5865F2;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e4e8;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #5865F2;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 14px 28px;
+            background: #5865F2;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1em;
+            width: 100%;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background: #4752C4;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(88,101,242,0.3);
+        }
+        .error {
+            background: #fee;
+            border: 2px solid #fcc;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .help-text {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+        @media (max-width: 768px) {
+            .container { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Volver al Panel</a>
+        
+        <h1>➕ Crear Nuevo Evento</h1>
+
+        {{if .error}}
+        <div class="error">❌ {{.error}}</div>
+        {{end}}
+
+        <form method="POST" action="/events/create">
+            <div class="form-group">
+                <label for="nombre">Nombre del Evento *</label>
+                <input type="text" id="nombre" name="nombre" required placeholder="Raid Mítica 20+">
+            </div>
+
+            <div class="form-group">
+                <label for="template">Template (Opcional)</label>
+                <select id="template" name="template">
+                    <option value="">-- Sin template (usar roles por defecto) --</option>
+                    {{range .templates}}
+                    <option value="{{.Name}}">{{.Icon}} {{.Name}} ({{.MaxParticipants}} jugadores)</option>
+                    {{end}}
+                </select>
+                <div class="help-text">Selecciona un template predefinido o deja vacío para usar la configuración por defecto</div>
+            </div>
+
+            <div class="form-group">
+                <label for="tipo">Tipo de Evento *</label>
+                <select id="tipo" name="tipo" required>
+                    <option value="">-- Seleccionar --</option>
+                    <option value="Raid">Raid</option>
+                    <option value="Dungeon">Dungeon</option>
+                    <option value="PvP">PvP</option>
+                    <option value="Social">Social</option>
+                    <option value="Farm">Farm</option>
+                    <option value="Quest">Quest</option>
+                    <option value="Otro">Otro</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="fecha">Fecha y Hora *</label>
+                <input type="datetime-local" id="fecha" name="fecha" required>
+                <div class="help-text">Selecciona la fecha y hora del evento</div>
+            </div>
+
+            <div class="form-group">
+                <label for="descripcion">Descripción *</label>
+                <textarea id="descripcion" name="descripcion" required placeholder="Describe el evento, requisitos, objetivos..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="channel">ID del Canal de Discord *</label>
+                <input type="text" id="channel" name="channel" required placeholder="1234567890123456789">
+                <div class="help-text">Click derecho en el canal → Copiar ID (requiere modo desarrollador activo)</div>
+            </div>
+
+            <button type="submit" class="btn">✅ Crear Evento</button>
+        </form>
+    </div>
+</body>
+</html>

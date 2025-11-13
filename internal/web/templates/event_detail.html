@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .title }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #5865F2;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .back-link:hover { text-decoration: underline; }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .event-type {
+            display: inline-block;
+            padding: 6px 15px;
+            background: #5865F2;
+            color: white;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+        .event-meta {
+            background: #f5f7fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        .event-meta p {
+            margin-bottom: 10px;
+            color: #555;
+            line-height: 1.6;
+        }
+        .event-meta strong {
+            color: #333;
+        }
+        .signups-section {
+            margin-top: 30px;
+        }
+        .signups-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #5865F2;
+            padding-bottom: 10px;
+        }
+        .role-group {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #5865F2;
+        }
+        .role-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .signup-item {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .signup-info {
+            flex: 1;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        .status-pending {
+            background: #FEE75C;
+            color: #57471F;
+        }
+        .status-confirmed {
+            background: #57F287;
+            color: #0E5E2C;
+        }
+        .status-declined {
+            background: #ED4245;
+            color: white;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #5865F2;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9em;
+        }
+        .btn:hover {
+            background: #4752C4;
+            transform: translateY(-2px);
+        }
+        .btn-danger {
+            background: #ED4245;
+        }
+        .btn-danger:hover {
+            background: #C23234;
+        }
+        .btn-success {
+            background: #57F287;
+            color: #0E5E2C;
+        }
+        .btn-success:hover {
+            background: #43B581;
+        }
+        .actions {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+        }
+        .empty {
+            color: #999;
+            font-style: italic;
+        }
+        @media (max-width: 768px) {
+            .container { padding: 20px; }
+            .signup-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Volver al Panel</a>
+        
+        <h1>📅 {{ .event.Name }}</h1>
+        <span class="event-type">{{ .event.Type }}</span>
+
+        <div class="event-meta">
+            <p><strong>📆 Fecha y Hora:</strong> {{ .event.DateTime.Format "Monday, 02 January 2006 - 15:04" }}</p>
+            <p><strong>📝 Descripción:</strong> {{ .event.Description }}</p>
+            <p><strong>🆔 ID del Evento:</strong> <code>{{ .event.ID }}</code></p>
+            <p><strong>📢 Canal:</strong> {{ .event.Channel }}</p>
+            <p><strong>✅ Estado:</strong> {{ .event.Status }}</p>
+            <p><strong>👤 Creado por:</strong> {{ .event.CreatedBy }}</p>
+        </div>
+
+        <div class="signups-section">
+            <h2>👥 Inscripciones</h2>
+
+            {{range .event.Roles}}
+            <div class="role-group">
+                <div class="role-title">{{ .Emoji }} {{ .Name }} (Límite: {{ .Limit }})</div>
+                
+                {{$role := .Name}}
+                {{$signups := index $.event.Signups .Name}}
+                
+                {{if $signups}}
+                    {{range $signups}}
+                    <div class="signup-item">
+                        <div class="signup-info">
+                            <strong>{{ .Username }}</strong>
+                            <span class="status-badge status-{{ .Status }}">{{ .Status }}</span>
+                            <br>
+                            <small style="color: #666;">ID: {{ .UserID }} | {{ .SignedUpAt.Format "02/01 15:04" }}</small>
+                        </div>
+                        {{if eq .Status "pending"}}
+                        <form method="POST" action="/events/{{ $.event.ID }}/confirm/{{ .UserID }}/{{ $role }}" style="display: inline;">
+                            <button type="submit" class="btn btn-success">✅ Confirmar</button>
+                        </form>
+                        {{end}}
+                    </div>
+                    {{end}}
+                {{else}}
+                    <p class="empty">Sin inscripciones en este rol</p>
+                {{end}}
+            </div>
+            {{end}}
+        </div>
+
+        <div class="actions">
+            <form method="POST" action="/events/{{ .event.ID }}/cancel" onsubmit="return confirm('¿Estás seguro de cancelar este evento?');">
+                <button type="submit" class="btn btn-danger">🗑️ Cancelar Evento</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

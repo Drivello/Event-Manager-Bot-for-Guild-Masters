@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .title }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 20px;
+        }
+        .editor-panel, .preview-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .preview-panel {
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+        h1, h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .role-section {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #e2e8f0;
+        }
+        .role-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .role-header h3 {
+            color: #333;
+            margin: 0;
+        }
+        .class-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #e2e8f0;
+        }
+        .class-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #38a169;
+        }
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e2e8f0;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .preview-embed {
+            background: #2c2f33;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .preview-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .preview-role {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+            padding: 10px;
+            background: #36393f;
+            border-radius: 6px;
+        }
+        .preview-role-emoji {
+            font-size: 24px;
+        }
+        .preview-role-name {
+            flex: 1;
+            font-weight: 600;
+        }
+        .preview-role-limit {
+            background: #667eea;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        .preview-classes {
+            margin-left: 40px;
+            margin-top: 8px;
+        }
+        .preview-class {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 5px 0;
+            font-size: 14px;
+            color: #b9bbbe;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <a href="/templates" class="back-link">← Volver a Templates</a>
+    
+    <div class="container">
+        <div class="editor-panel">
+            <h1>{{ if eq .mode "create" }}Crear Nuevo Template{{ else }}Editar Template{{ end }}</h1>
+            
+            <form id="templateForm">
+                <div class="form-group">
+                    <label>Nombre del Template *</label>
+                    <input type="text" id="name" required {{ if eq .mode "edit" }}readonly{{ end }} value="{{ if .template }}{{ .template.Name }}{{ end }}">
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Icono (Emoji)</label>
+                        <input type="text" id="icon" value="{{ if .template }}{{ .template.Icon }}{{ else }}⚔️{{ end }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Máximo de Participantes</label>
+                        <input type="number" id="maxParticipants" min="1" value="{{ if .template }}{{ .template.MaxParticipants }}{{ else }}20{{ end }}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea id="description">{{ if .template }}{{ .template.Description }}{{ end }}</textarea>
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="allowMultiSignup" {{ if .template }}{{ if .template.AllowMultiSignup }}checked{{ end }}{{ end }}>
+                    <label for="allowMultiSignup" style="margin: 0;">Permitir inscripción múltiple</label>
+                </div>
+
+                <h2>Roles</h2>
+                <div id="rolesContainer"></div>
+                
+                <button type="button" class="btn btn-success" onclick="addRole()">➕ Agregar Rol</button>
+
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary">💾 Guardar Template</button>
+                    <a href="/templates" class="btn btn-danger">❌ Cancelar</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="preview-panel">
+            <h2>Vista Previa</h2>
+            <div id="preview" class="preview-embed">
+                <div class="preview-title">📅 Ejemplo de Evento</div>
+                <div id="previewRoles"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="template-data"
+        data-roles='{{ if .template }}{{ .template.Roles | json }}{{ else }}[]{{ end }}'
+        data-mode='{{ .mode }}'>
+    </div>
+    
+    <script>
+        const templateDataEl = document.getElementById('template-data');
+
+        let roles = [];
+        try {
+            roles = JSON.parse(templateDataEl.dataset.roles || "[]");
+        } catch (e) {
+            roles = [];
+        }
+
+        const mode = templateDataEl.dataset.mode || "create";
+
+        function renderRoles() {
+            const container = document.getElementById('rolesContainer');
+            container.innerHTML = '';
+
+            roles.forEach((role, roleIndex) => {
+                const roleDiv = document.createElement('div');
+                roleDiv.className = 'role-section';
+                roleDiv.innerHTML = `
+                    <div class="role-header">
+                        <h3>Rol ${roleIndex + 1}</h3>
+                        <button type="button" class="btn btn-danger btn-small" onclick="removeRole(${roleIndex})">🗑️ Eliminar</button>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Nombre del Rol</label>
+                            <input type="text" value="${role.name}" onchange="updateRole(${roleIndex}, 'name', this.value)">
+                        </div>
+                        <div class="form-group">
+                            <label>Emoji</label>
+                            <input type="text" value="${role.emoji}" onchange="updateRole(${roleIndex}, 'emoji', this.value)">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Límite de Jugadores</label>
+                        <input type="number" min="1" value="${role.limit}" onchange="updateRole(${roleIndex}, 'limit', parseInt(this.value))">
+                    </div>
+                    <h4>Clases/Especializaciones</h4>
+                    <div id="classesContainer${roleIndex}"></div>
+                    <button type="button" class="btn btn-success btn-small" onclick="addClass(${roleIndex})">➕ Agregar Clase</button>
+                `;
+                container.appendChild(roleDiv);
+
+                renderClasses(roleIndex);
+            });
+
+            updatePreview();
+        }
+
+        function renderClasses(roleIndex) {
+            const container = document.getElementById(`classesContainer${roleIndex}`);
+            if (!container) return;
+            
+            container.innerHTML = '';
+            const classes = roles[roleIndex].classes || [];
+
+            classes.forEach((cls, classIndex) => {
+                const classDiv = document.createElement('div');
+                classDiv.className = 'class-item';
+                classDiv.innerHTML = `
+                    <div class="class-header">
+                        <strong>Clase ${classIndex + 1}</strong>
+                        <button type="button" class="btn btn-danger btn-small" onclick="removeClass(${roleIndex}, ${classIndex})">🗑️</button>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Nombre</label>
+                            <input type="text" value="${cls.name}" onchange="updateClass(${roleIndex}, ${classIndex}, 'name', this.value)">
+                        </div>
+                        <div class="form-group">
+                            <label>Emoji</label>
+                            <input type="text" value="${cls.emoji}" onchange="updateClass(${roleIndex}, ${classIndex}, 'emoji', this.value)">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Descripción (opcional)</label>
+                        <input type="text" value="${cls.description || ''}" onchange="updateClass(${roleIndex}, ${classIndex}, 'description', this.value)">
+                    </div>
+                `;
+                container.appendChild(classDiv);
+            });
+        }
+
+        function addRole() {
+            roles.push({
+                name: 'Nuevo Rol',
+                emoji: '⚔️',
+                limit: 5,
+                classes: []
+            });
+            renderRoles();
+        }
+
+        function removeRole(index) {
+            roles.splice(index, 1);
+            renderRoles();
+        }
+
+        function updateRole(index, field, value) {
+            roles[index][field] = value;
+            updatePreview();
+        }
+
+        function addClass(roleIndex) {
+            if (!roles[roleIndex].classes) {
+                roles[roleIndex].classes = [];
+            }
+            roles[roleIndex].classes.push({
+                name: 'Nueva Clase',
+                emoji: '🎯',
+                description: ''
+            });
+            renderClasses(roleIndex);
+            updatePreview();
+        }
+
+        function removeClass(roleIndex, classIndex) {
+            roles[roleIndex].classes.splice(classIndex, 1);
+            renderClasses(roleIndex);
+            updatePreview();
+        }
+
+        function updateClass(roleIndex, classIndex, field, value) {
+            roles[roleIndex].classes[classIndex][field] = value;
+            updatePreview();
+        }
+
+        function updatePreview() {
+            const previewRoles = document.getElementById('previewRoles');
+            previewRoles.innerHTML = '';
+
+            roles.forEach(role => {
+                const roleDiv = document.createElement('div');
+                roleDiv.className = 'preview-role';
+                roleDiv.innerHTML = `
+                    <span class="preview-role-emoji">${role.emoji}</span>
+                    <span class="preview-role-name">${role.name}</span>
+                    <span class="preview-role-limit">0/${role.limit}</span>
+                `;
+                previewRoles.appendChild(roleDiv);
+
+                if (role.classes && role.classes.length > 0) {
+                    const classesDiv = document.createElement('div');
+                    classesDiv.className = 'preview-classes';
+                    role.classes.forEach(cls => {
+                        const classItem = document.createElement('div');
+                        classItem.className = 'preview-class';
+                        classItem.innerHTML = `<span>${cls.emoji}</span> <span>${cls.name}</span>`;
+                        classesDiv.appendChild(classItem);
+                    });
+                    previewRoles.appendChild(classesDiv);
+                }
+            });
+        }
+
+        document.getElementById('templateForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const template = {
+                name: document.getElementById('name').value,
+                icon: document.getElementById('icon').value,
+                max_participants: parseInt(document.getElementById('maxParticipants').value),
+                description: document.getElementById('description').value,
+                allow_multi_signup: document.getElementById('allowMultiSignup').checked,
+                roles: roles
+            };
+
+            const mode = '{{ .mode }}';
+            const url = mode === 'create' ? '/api/templates' : `/api/templates/${encodeURIComponent(template.name)}`;
+            const method = mode === 'create' ? 'POST' : 'PUT';
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(template)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert(data.message);
+                    window.location.href = '/templates';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error guardando template: ' + error);
+            }
+        });
+
+        // Inicializar
+        renderRoles();
+    </script>
+</body>
+</html>

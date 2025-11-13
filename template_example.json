@@ -1,0 +1,129 @@
+{
+  "name": "Raid Personalizada 15",
+  "icon": "⚔️",
+  "max_participants": 15,
+  "description": "Template de ejemplo para raid de 15 jugadores con roles y clases personalizadas",
+  "allow_multi_signup": false,
+  "roles": [
+    {
+      "name": "Tank",
+      "emoji": "🛡️",
+      "limit": 3,
+      "classes": [
+        {
+          "name": "Protection Warrior",
+          "emoji": "🪓",
+          "description": "Guerrero protección - Alta mitigación física"
+        },
+        {
+          "name": "Guardian Druid",
+          "emoji": "🐻",
+          "description": "Druida guardián - Tanque versátil"
+        },
+        {
+          "name": "Blood Death Knight",
+          "emoji": "💀",
+          "description": "Caballero de la muerte sangre - Auto-curación"
+        },
+        {
+          "name": "Protection Paladin",
+          "emoji": "⚔️",
+          "description": "Paladín protección - Utilidad y soporte"
+        }
+      ]
+    },
+    {
+      "name": "Healer",
+      "emoji": "💚",
+      "limit": 3,
+      "classes": [
+        {
+          "name": "Holy Priest",
+          "emoji": "⛪",
+          "description": "Sacerdote sagrado - Curación en área"
+        },
+        {
+          "name": "Restoration Druid",
+          "emoji": "🌿",
+          "description": "Druida restauración - HoTs y movilidad"
+        },
+        {
+          "name": "Holy Paladin",
+          "emoji": "✨",
+          "description": "Paladín sagrado - Curación directa potente"
+        },
+        {
+          "name": "Restoration Shaman",
+          "emoji": "⚡",
+          "description": "Chamán restauración - Curación en cadena"
+        }
+      ]
+    },
+    {
+      "name": "Melee DPS",
+      "emoji": "🗡️",
+      "limit": 4,
+      "classes": [
+        {
+          "name": "Fury Warrior",
+          "emoji": "⚔️",
+          "description": "Guerrero furia - DPS sostenido"
+        },
+        {
+          "name": "Assassination Rogue",
+          "emoji": "🗡️",
+          "description": "Pícaro asesinato - DoTs y venenos"
+        },
+        {
+          "name": "Unholy Death Knight",
+          "emoji": "💀",
+          "description": "Caballero profano - Mascotas y DoTs"
+        },
+        {
+          "name": "Retribution Paladin",
+          "emoji": "🔨",
+          "description": "Paladín reprensión - Burst damage"
+        }
+      ]
+    },
+    {
+      "name": "Ranged DPS",
+      "emoji": "🏹",
+      "limit": 5,
+      "classes": [
+        {
+          "name": "Marksmanship Hunter",
+          "emoji": "🎯",
+          "description": "Cazador puntería - Daño a distancia preciso"
+        },
+        {
+          "name": "Fire Mage",
+          "emoji": "🔥",
+          "description": "Mago fuego - AoE y burst"
+        },
+        {
+          "name": "Frost Mage",
+          "emoji": "❄️",
+          "description": "Mago escarcha - Control y daño"
+        },
+        {
+          "name": "Affliction Warlock",
+          "emoji": "😈",
+          "description": "Brujo aflicción - DoTs multitarget"
+        },
+        {
+          "name": "Shadow Priest",
+          "emoji": "🌑",
+          "description": "Sacerdote sombra - Daño sostenido"
+        },
+        {
+          "name": "Balance Druid",
+          "emoji": "🌙",
+          "description": "Druida equilibrio - Daño mágico versátil"
+        }
+      ]
+    }
+  ],
+  "created_at": "2024-11-13T00:00:00Z",
+  "updated_at": "2024-11-13T00:00:00Z"
+}

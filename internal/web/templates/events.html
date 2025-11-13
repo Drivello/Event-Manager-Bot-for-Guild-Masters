@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .title }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #5865F2;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .back-link:hover { text-decoration: underline; }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e1e4e8;
+        }
+        th {
+            background: #5865F2;
+            color: white;
+            font-weight: 600;
+        }
+        tr:hover {
+            background: #f5f7fa;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        .status-active {
+            background: #57F287;
+            color: #0E5E2C;
+        }
+        .status-completed {
+            background: #B9BBBE;
+            color: #2C2F33;
+        }
+        .status-cancelled {
+            background: #ED4245;
+            color: white;
+        }
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #5865F2;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background: #4752C4;
+        }
+        @media (max-width: 768px) {
+            .container { padding: 20px; overflow-x: auto; }
+            table { font-size: 0.9em; }
+            th, td { padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Volver al Panel</a>
+        
+        <h1>📋 Todos los Eventos</h1>
+
+        {{if .events}}
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Tipo</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .events}}
+                <tr>
+                    <td><strong>{{.Name}}</strong></td>
+                    <td>{{.Type}}</td>
+                    <td>{{.DateTime.Format "02/01/2006 15:04"}}</td>
+                    <td><span class="status-badge status-{{.Status}}">{{.Status}}</span></td>
+                    <td><a href="/events/{{.ID}}" class="btn">Ver Detalles</a></td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+        {{else}}
+        <p style="text-align: center; color: #666; padding: 40px;">No hay eventos registrados</p>
+        {{end}}
+    </div>
+</body>
+</html>

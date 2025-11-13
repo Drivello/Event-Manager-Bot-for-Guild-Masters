@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .title }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .header h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: #666;
+        }
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: #48bb78;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #38a169;
+        }
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+        .templates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        .template-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        .template-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .template-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .template-icon {
+            font-size: 48px;
+        }
+        .template-info h3 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .template-info p {
+            color: #666;
+            font-size: 14px;
+        }
+        .template-stats {
+            display: flex;
+            gap: 15px;
+            margin: 15px 0;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+        .stat {
+            flex: 1;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .roles-list {
+            margin: 15px 0;
+        }
+        .role-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            background: #f7fafc;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        .role-emoji {
+            font-size: 20px;
+        }
+        .role-name {
+            flex: 1;
+            font-weight: 600;
+            color: #333;
+        }
+        .role-limit {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        .template-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .template-actions .btn {
+            flex: 1;
+            text-align: center;
+            font-size: 14px;
+            padding: 10px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .empty-state {
+            background: white;
+            padding: 60px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .empty-state h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        .empty-state p {
+            color: #666;
+            margin-bottom: 25px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Volver al Panel Principal</a>
+        
+        <div class="header">
+            <h1>🎨 {{ .title }}</h1>
+            <p>Gestiona templates reutilizables para tus eventos MMO</p>
+        </div>
+
+        <div class="actions">
+            <a href="/templates/create" class="btn btn-primary">➕ Crear Nuevo Template</a>
+            <button onclick="importTemplate()" class="btn btn-secondary">📥 Importar Template</button>
+        </div>
+
+        {{ if .templates }}
+        <div class="templates-grid">
+            {{ range .templates }}
+            <div class="template-card">
+                <div class="template-header">
+                    <div class="template-icon">{{ .Icon }}</div>
+                    <div class="template-info">
+                        <h3>{{ .Name }}</h3>
+                        <p>{{ .Description }}</p>
+                    </div>
+                </div>
+
+                <div class="template-stats">
+                    <div class="stat">
+                        <div class="stat-value">{{ .MaxParticipants }}</div>
+                        <div class="stat-label">Max Jugadores</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">{{ len .Roles }}</div>
+                        <div class="stat-label">Roles</div>
+                    </div>
+                </div>
+
+                <div class="roles-list">
+                    {{ range .Roles }}
+                    <div class="role-item">
+                        <span class="role-emoji">{{ .Emoji }}</span>
+                        <span class="role-name">{{ .Name }}</span>
+                        <span class="role-limit">{{ .Limit }}</span>
+                    </div>
+                    {{ end }}
+                </div>
+
+                <div class="template-actions">
+                    <a href="/templates/{{ .Name }}/edit" class="btn btn-primary">✏️ Editar</a>
+                    <button onclick="cloneTemplate('{{ .Name }}')" class="btn btn-secondary">📋 Clonar</button>
+                    <button onclick="exportTemplate('{{ .Name }}')" class="btn btn-secondary">💾 Exportar</button>
+                    <button onclick="deleteTemplate('{{ .Name }}')" class="btn btn-danger">🗑️</button>
+                </div>
+            </div>
+            {{ end }}
+        </div>
+        {{ else }}
+        <div class="empty-state">
+            <h2>No hay templates disponibles</h2>
+            <p>Crea tu primer template para comenzar a organizar eventos de manera más eficiente</p>
+            <a href="/templates/create" class="btn btn-primary">Crear Primer Template</a>
+        </div>
+        {{ end }}
+    </div>
+
+    <script>
+        function deleteTemplate(name) {
+            if (!confirm(`¿Estás seguro de eliminar el template "${name}"?`)) {
+                return;
+            }
+
+            fetch(`/api/templates/${encodeURIComponent(name)}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                location.reload();
+            })
+            .catch(error => {
+                alert('Error eliminando template: ' + error);
+            });
+        }
+
+        function cloneTemplate(name) {
+            const newName = prompt(`Ingresa el nombre para el clon de "${name}":`);
+            if (!newName) return;
+
+            fetch(`/api/templates/${encodeURIComponent(name)}/clone`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ new_name: newName })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                location.reload();
+            })
+            .catch(error => {
+                alert('Error clonando template: ' + error);
+            });
+        }
+
+        function exportTemplate(name) {
+            window.location.href = `/api/templates/${encodeURIComponent(name)}/export`;
+        }
+
+        function importTemplate() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = e => {
+                const file = e.target.files[0];
+                const formData = new FormData();
+                formData.append('file', file);
+
+                fetch('/api/templates/import', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    location.reload();
+                })
+                .catch(error => {
+                    alert('Error importando template: ' + error);
+                });
+            };
+            input.click();
+        }
+    </script>
+</body>
+</html>
