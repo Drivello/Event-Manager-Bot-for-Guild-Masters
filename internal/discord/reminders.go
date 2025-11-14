@@ -108,7 +108,29 @@ func sendReminder(s *discordgo.Session, event *storage.Event) {
 		}
 	}
 
-	content := fmt.Sprintf("🔔 **Recordatorio**: El evento **%s** comienza <t:%d:R>\n\n%s",
+	totalConfirmed := 0
+	for _, signups := range event.Signups {
+		for _, signup := range signups {
+			if signup.Status == "confirmed" {
+				totalConfirmed++
+			}
+		}
+	}
+
+	maxParticipants := event.MaxParticipants
+	if maxParticipants == 0 {
+		for _, role := range event.Roles {
+			maxParticipants += role.Limit
+		}
+	}
+
+	prefix := ""
+	if maxParticipants == 0 || totalConfirmed < maxParticipants {
+		prefix = "@here "
+	}
+
+	content := fmt.Sprintf("%s🔔 **Recordatorio**: El evento **%s** comienza <t:%d:R>\n\n%s",
+		prefix,
 		event.Name,
 		event.DateTime.Unix(),
 		strings.Join(mentions, " "))

@@ -224,7 +224,7 @@ func (s *EventStore) AddSignup(eventID, userID, username, role string) error {
 		UserID:     userID,
 		Username:   username,
 		Role:       role,
-		Status:     "pending",
+		Status:     "confirmed",
 		SignedUpAt: time.Now(),
 	}
 
@@ -344,7 +344,7 @@ func (s *EventStore) AddSignupWithClass(eventID, userID, username, role, class s
 		Username:   username,
 		Role:       role,
 		Class:      class,
-		Status:     "pending",
+		Status:     "confirmed",
 		SignedUpAt: time.Now(),
 	}
 

@@ -267,30 +267,21 @@ func buildSignupsText(event *storage.Event) string {
 
 	for _, role := range event.Roles {
 		signups := event.Signups[role.Name]
-		confirmedCount := 0
-		pendingCount := 0
 
+		// Cabecera del rol con contador simple de inscriptos
+		builder.WriteString(fmt.Sprintf("%s **%s**: %d/%d\n",
+			role.Emoji, role.Name, len(signups), role.Limit))
+
+		// Listado de nombres debajo del rol
 		for _, signup := range signups {
-			if signup.Status == "confirmed" {
-				confirmedCount++
-			} else {
-				pendingCount++
-			}
+			builder.WriteString(fmt.Sprintf("- %s\n", signup.Username))
 		}
-
-		builder.WriteString(fmt.Sprintf("%s **%s**: %d/%d",
-			role.Emoji, role.Name, confirmedCount, role.Limit))
-
-		if pendingCount > 0 {
-			builder.WriteString(fmt.Sprintf(" (%d pendiente)", pendingCount))
-		}
-		builder.WriteString("\n")
 
 		// Si hay clases definidas, mostrar desglose por clase
 		if len(role.Classes) > 0 {
 			classCounts := make(map[string]int)
 			for _, signup := range signups {
-				if signup.Status == "confirmed" && signup.Class != "" {
+				if signup.Class != "" {
 					classCounts[signup.Class]++
 				}
 			}
@@ -388,7 +379,7 @@ func handleSignup(s *discordgo.Session, i *discordgo.InteractionCreate, eventID,
 	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content: fmt.Sprintf("✅ Te has inscrito como **%s**. Pendiente de confirmación.", role),
+			Content: fmt.Sprintf("✅ Te has inscrito como **%s**. Tu inscripción está confirmada.", role),
 			Flags:   discordgo.MessageFlagsEphemeral,
 		},
 	})
