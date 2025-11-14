@@ -220,44 +220,9 @@ ENABLE_DISCORD_EVENTS=true
 
 ## 🖥️ Instalación en Raspberry Pi
 
-### Opción recomendada: script de despliegue automático
+La guía detallada de despliegue en Raspberry Pi (incluyendo `systemd`, estructura de carpetas y troubleshooting) se encuentra en:
 
-En tu PC:
-
-```bash
-./deploy-pi.sh <IP_RASPBERRY_PI>
-```
-
-Este script:
-- Compila el binario para ARM (Raspberry Pi Zero 2 W y similares).
-- Copia el binario, los templates HTML y el servicio systemd.
-- (Opcionalmente) copia tu archivo `.env`.
-
-### Opción manual (compilación cruzada)
-
-En tu PC:
-
-```bash
-GOOS=linux GOARCH=arm64 go build -o discord-event-bot cmd/main.go
-scp discord-event-bot pi@tu-raspberry-pi:/home/pi/discord-event-bot/discord-event-bot
-scp .env pi@tu-raspberry-pi:/home/pi/discord-event-bot/.env
-```
-
-En la Raspberry Pi, configurar como servicio systemd:
-
-```bash
-sudo cp /home/pi/discord-event-bot/discord-bot.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable discord-bot
-sudo systemctl start discord-bot
-```
-
-Verificar estado:
-
-```bash
-sudo systemctl status discord-bot
-sudo journalctl -u discord-bot -f
-```
+`docs/rapsberry-docs.md`
 
 ## 📊 Logs y Monitoreo
 
