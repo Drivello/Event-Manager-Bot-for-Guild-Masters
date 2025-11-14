@@ -135,5 +135,15 @@ func sendReminder(s *discordgo.Session, event *storage.Event) {
 		event.DateTime.Unix(),
 		strings.Join(mentions, " "))
 
-	s.ChannelMessageSend(event.Channel, content)
+	// Enviar al hilo del evento si existe, con fallback al canal principal
+	targetChannelID := event.Channel
+	if event.ThreadID != "" {
+		if _, err := s.ChannelMessageSend(event.ThreadID, content); err != nil {
+			log.Printf("Error enviando recordatorio al hilo %s para evento %s: %v", event.ThreadID, event.ID, err)
+		} else {
+			return
+		}
+	}
+
+	s.ChannelMessageSend(targetChannelID, content)
 }

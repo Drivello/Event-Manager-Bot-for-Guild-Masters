@@ -91,6 +91,25 @@ func InitStore() error {
 	return nil
 }
 
+func (s *EventStore) DeleteCancelledEvents() (int, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	deleted := 0
+	for id, event := range s.events {
+		if event.Status == "cancelled" {
+			filename := filepath.Join(eventsDir, fmt.Sprintf("%s.json", id))
+			if err := os.Remove(filename); err != nil && !os.IsNotExist(err) {
+				return deleted, fmt.Errorf("error eliminando archivo: %w", err)
+			}
+			delete(s.events, id)
+			deleted++
+		}
+	}
+
+	return deleted, nil
+}
+
 // SaveEvent guarda un evento en disco
 func (s *EventStore) SaveEvent(event *Event) error {
 	s.mu.Lock()

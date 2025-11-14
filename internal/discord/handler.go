@@ -640,6 +640,15 @@ func handleDeleteEvent(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		s.ChannelMessageDelete(event.Channel, event.MessageID)
 	}
 
+	// Cerrar hilo asociado si existe
+	if event.ThreadID != "" {
+		archived := true
+		locked := true
+		if _, err := s.ChannelEdit(event.ThreadID, &discordgo.ChannelEdit{Archived: &archived, Locked: &locked}); err != nil {
+			log.Printf("Error archivando hilo %s para evento %s: %v", event.ThreadID, event.ID, err)
+		}
+	}
+
 	// Eliminar evento
 	storage.Store.DeleteEvent(eventID)
 

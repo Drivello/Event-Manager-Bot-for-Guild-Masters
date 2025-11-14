@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/bwmarrin/discordgo"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -51,6 +52,7 @@ func InitWebServer() {
 	authorized.GET("/events/:id", handleEventDetail)
 	authorized.POST("/events/:id/cancel", handleCancelEvent)
 	authorized.POST("/events/:id/confirm/:userid/:role", handleConfirmSignup)
+	authorized.POST("/events/cleanup-cancelled", handleCleanupCancelledEvents)
 	authorized.GET("/config", handleConfigPage)
 
 	// Rutas de templates
@@ -221,12 +223,33 @@ func handleCancelEvent(c *gin.Context) {
 	event.Status = "cancelled"
 	storage.Store.SaveEvent(event)
 
-	// Eliminar mensaje de Discord si existe
-	if discord.Session != nil && event.MessageID != "" {
-		discord.Session.ChannelMessageDelete(event.Channel, event.MessageID)
+	// Eliminar mensaje de Discord y cerrar hilo si existen
+	if discord.Session != nil {
+		if event.MessageID != "" {
+			discord.Session.ChannelMessageDelete(event.Channel, event.MessageID)
+		}
+		if event.ThreadID != "" {
+			archived := true
+			locked := true
+			if _, err := discord.Session.ChannelEdit(event.ThreadID, &discordgo.ChannelEdit{Archived: &archived, Locked: &locked}); err != nil {
+				log.Printf("Error archivando hilo %s para evento %s: %v", event.ThreadID, event.ID, err)
+			}
+		}
 	}
 
 	c.Redirect(http.StatusSeeOther, "/")
+}
+
+func handleCleanupCancelledEvents(c *gin.Context) {
+	deleted, err := storage.Store.DeleteCancelledEvents()
+	if err != nil {
+		log.Printf("Error eliminando eventos cancelados: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error eliminando eventos cancelados"})
+		return
+	}
+
+	log.Printf("Eliminados %d eventos cancelados", deleted)
+	c.Redirect(http.StatusSeeOther, "/events")
 }
 
 // handleConfirmSignup confirma una inscripción

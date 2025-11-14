@@ -96,6 +96,10 @@
         
         <h1>📋 Todos los Eventos</h1>
 
+        <form method="POST" action="/events/cleanup-cancelled" style="margin-bottom: 20px;" onsubmit="return confirm('¿Eliminar todos los eventos cancelados? Esta acción es permanente.');">
+            <button type="submit" class="btn" style="background: #ED4245;">🧹 Eliminar eventos cancelados</button>
+        </form>
+
         {{if .events}}
         <table>
             <thead>
