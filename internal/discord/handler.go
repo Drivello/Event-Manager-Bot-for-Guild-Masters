@@ -198,31 +198,50 @@ func PublishEventMessage(s *discordgo.Session, event *storage.Event) error {
 	var components []discordgo.MessageComponent
 	var currentRow discordgo.ActionsRow
 
-	for i, role := range event.Roles {
-		// Emoji va en el label, no en el campo Emoji del botón
-		label := role.Name
-		if role.Emoji != "" {
-			label = fmt.Sprintf("%s %s", role.Emoji, role.Name)
-		}
+	for _, role := range event.Roles {
+		if len(role.Classes) > 0 {
+			// Botones por clase dentro del rol
+			for _, class := range role.Classes {
+				label := class.Name
+				if class.Emoji != "" {
+					label = fmt.Sprintf("%s %s", class.Emoji, class.Name)
+				}
 
-		button := discordgo.Button{
-			Label:    label,
-			Style:    discordgo.PrimaryButton,
-			CustomID: fmt.Sprintf("signup_%s_%s", event.ID, role.Name),
-		}
+				button := discordgo.Button{
+					Label:    label,
+					Style:    discordgo.PrimaryButton,
+					CustomID: fmt.Sprintf("signup_%s_%s__%s", event.ID, role.Name, class.Name),
+				}
 
-		currentRow.Components = append(currentRow.Components, button)
+				currentRow.Components = append(currentRow.Components, button)
+				if len(currentRow.Components) == 5 {
+					components = append(components, currentRow)
+					currentRow = discordgo.ActionsRow{}
+				}
+			}
+		} else {
+			// Botón único por rol
+			label := role.Name
+			if role.Emoji != "" {
+				label = fmt.Sprintf("%s %s", role.Emoji, role.Name)
+			}
 
-		// Si llegamos a 5 botones, cerramos la fila
-		if len(currentRow.Components) == 5 {
-			components = append(components, currentRow)
-			currentRow = discordgo.ActionsRow{}
-		}
+			button := discordgo.Button{
+				Label:    label,
+				Style:    discordgo.PrimaryButton,
+				CustomID: fmt.Sprintf("signup_%s_%s", event.ID, role.Name),
+			}
 
-		// Último rol: si quedó algo en la fila, la agregamos
-		if i == len(event.Roles)-1 && len(currentRow.Components) > 0 {
-			components = append(components, currentRow)
+			currentRow.Components = append(currentRow.Components, button)
+			if len(currentRow.Components) == 5 {
+				components = append(components, currentRow)
+				currentRow = discordgo.ActionsRow{}
+			}
 		}
+	}
+
+	if len(currentRow.Components) > 0 {
+		components = append(components, currentRow)
 	}
 
 	// Botón para cancelar inscripción en una fila separada
@@ -307,12 +326,23 @@ func handleButtonClick(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	customID := i.MessageComponentData().CustomID
 
 	if strings.HasPrefix(customID, "signup_") {
-		parts := strings.Split(customID, "_")
-		if len(parts) >= 3 {
-			eventID := parts[1]
-			role := strings.Join(parts[2:], "_")
-			handleSignup(s, i, eventID, role)
+		payload := strings.TrimPrefix(customID, "signup_")
+		underscoreIdx := strings.Index(payload, "_")
+		if underscoreIdx == -1 {
+			return
 		}
+
+		eventID := payload[:underscoreIdx]
+		rest := payload[underscoreIdx+1:]
+
+		role := rest
+		class := ""
+		if sep := strings.Index(rest, "__"); sep != -1 {
+			role = rest[:sep]
+			class = rest[sep+2:]
+		}
+
+		handleSignup(s, i, eventID, role, class)
 	} else if strings.HasPrefix(customID, "cancel_") {
 		eventID := strings.TrimPrefix(customID, "cancel_")
 		handleCancelSignup(s, i, eventID)
@@ -320,7 +350,7 @@ func handleButtonClick(s *discordgo.Session, i *discordgo.InteractionCreate) {
 }
 
 // handleSignup maneja las inscripciones
-func handleSignup(s *discordgo.Session, i *discordgo.InteractionCreate, eventID, role string) {
+func handleSignup(s *discordgo.Session, i *discordgo.InteractionCreate, eventID, role, class string) {
 	event, err := storage.Store.GetEvent(eventID)
 	if err != nil {
 		respondError(s, i, "Evento no encontrado")
@@ -367,8 +397,14 @@ func handleSignup(s *discordgo.Session, i *discordgo.InteractionCreate, eventID,
 		return
 	}
 
-	// Agregar inscripción
-	if err := storage.Store.AddSignup(eventID, userID, username, role); err != nil {
+	// Agregar inscripción (con clase si aplica)
+	var signupErr error
+	if class != "" {
+		signupErr = storage.Store.AddSignupWithClass(eventID, userID, username, role, class)
+	} else {
+		signupErr = storage.Store.AddSignup(eventID, userID, username, role)
+	}
+	if signupErr != nil {
 		respondError(s, i, "Error procesando inscripción")
 		return
 	}
@@ -376,10 +412,15 @@ func handleSignup(s *discordgo.Session, i *discordgo.InteractionCreate, eventID,
 	// Actualizar mensaje
 	UpdateEventMessage(s, event)
 
+	label := role
+	if class != "" {
+		label = fmt.Sprintf("%s - %s", role, class)
+	}
+
 	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content: fmt.Sprintf("✅ Te has inscrito como **%s**. Tu inscripción está confirmada.", role),
+			Content: fmt.Sprintf("✅ Te has inscrito como **%s**. Tu inscripción está confirmada.", label),
 			Flags:   discordgo.MessageFlagsEphemeral,
 		},
 	})
@@ -468,19 +509,50 @@ func UpdateEventMessage(s *discordgo.Session, event *storage.Event) {
 	var components []discordgo.MessageComponent
 	var currentRow discordgo.ActionsRow
 
-	for i, role := range event.Roles {
-		button := discordgo.Button{
-			Label:    role.Name,
-			Style:    discordgo.PrimaryButton,
-			CustomID: fmt.Sprintf("signup_%s_%s", event.ID, role.Name),
-		}
-		currentRow.Components = append(currentRow.Components, button)
+	for _, role := range event.Roles {
+		if len(role.Classes) > 0 {
+			// Botones por clase dentro del rol
+			for _, class := range role.Classes {
+				label := class.Name
+				if class.Emoji != "" {
+					label = fmt.Sprintf("%s %s", class.Emoji, class.Name)
+				}
 
-		// Si llegamos a 5 botones o es el último rol, crear nueva fila
-		if len(currentRow.Components) == 5 || i == len(event.Roles)-1 {
-			components = append(components, currentRow)
-			currentRow = discordgo.ActionsRow{}
+				button := discordgo.Button{
+					Label:    label,
+					Style:    discordgo.PrimaryButton,
+					CustomID: fmt.Sprintf("signup_%s_%s__%s", event.ID, role.Name, class.Name),
+				}
+
+				currentRow.Components = append(currentRow.Components, button)
+				if len(currentRow.Components) == 5 {
+					components = append(components, currentRow)
+					currentRow = discordgo.ActionsRow{}
+				}
+			}
+		} else {
+			// Botón único por rol
+			label := role.Name
+			if role.Emoji != "" {
+				label = fmt.Sprintf("%s %s", role.Emoji, role.Name)
+			}
+
+			button := discordgo.Button{
+				Label:    label,
+				Style:    discordgo.PrimaryButton,
+				CustomID: fmt.Sprintf("signup_%s_%s", event.ID, role.Name),
+			}
+
+			currentRow.Components = append(currentRow.Components, button)
+			if len(currentRow.Components) == 5 {
+				components = append(components, currentRow)
+				currentRow = discordgo.ActionsRow{}
+			}
 		}
+	}
+
+	if len(currentRow.Components) > 0 {
+		components = append(components, currentRow)
 	}
 
 	// Botón para cancelar inscripción en una fila separada
