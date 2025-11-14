@@ -1,27 +1,32 @@
 # 🎮 Discord Event Bot para MMO Guilds
 
-Bot profesional de Discord especializado en la gestión de eventos para guilds de juegos MMO (WoW, FFXIV, etc.), con panel web de administración. Optimizado para ejecutarse en dispositivos de bajo consumo como **Raspberry Pi Zero 2 W**.
+Bot profesional de Discord especializado en la gestión de eventos para guilds de juegos MMO (WoW, FFXIV, etc.), con panel web de administración. 
+Se creó con el objetivo de ayudarme a gestionar eventos en mi guild ejecutándose en una simple Raspberry Pi Zero 2.
 
 ## ✨ Características
 
 ### Bot de Discord
 - ✅ Comandos slash para gestión completa de eventos
-- 🎯 Sistema de inscripciones con botones interactivos
+- 🎯 Sistema de inscripciones con botones interactivos por rol
+- 🧬 Botones por clase dentro de cada rol, con emojis personalizados
 - 👥 Roles personalizables (Tank, DPS, Healer, etc.)
-- 🎨 **Sistema de templates reutilizables** con clases/especializaciones
+- 🎨 Sistema de templates reutilizables con clases/especializaciones
+- 📊 Límites opcionales por rol y globales (0 = sin límite, se muestra como ∞)
+- 🧵 Creación automática de hilos de discusión por evento 
+- 🔁 Soporte para eventos recurrentes
 - 🔔 Recordatorios automáticos programables
-- ✅ Confirmación manual de inscritos por administradores
 - 📅 Integración opcional con eventos oficiales de Discord
-- 💾 Almacenamiento local en archivos JSON/YAML (sin base de datos externa)
+- 💾 Almacenamiento local en archivos JSON/YAML
 
 ### Panel Web
 - 🌐 Interfaz web responsive accesible en LAN
 - 🔐 Autenticación básica con usuario/contraseña
 - 📝 Creación y gestión de eventos desde el navegador
-- 🎨 **Editor visual de templates** con vista previa en tiempo real
+- 🎨 Editor visual de templates con vista previa en tiempo real
 - 👥 Visualización de inscripciones en tiempo real
 - 📥 Importar/Exportar templates en JSON
 - ⚙️ Página de configuración del sistema
+- 🧹 Botón para limpiar eventos cancelados del historial
 - 📱 Diseño optimizado para móviles
 
 ## 📋 Requisitos
@@ -36,8 +41,8 @@ Bot profesional de Discord especializado en la gestión de eventos para guilds d
 ### 1. Clonar o descargar el proyecto
 
 ```bash
-git clone <tu-repositorio>
-cd discord-event-bot
+git clone https://github.com/Drivello/Event-Manager-Bot-for-Guild-Masters
+cd Event-Manager-Bot-for-Guild-Masters
 ```
 
 ### 2. Configurar variables de entorno
@@ -75,8 +80,7 @@ Variables requeridas:
 ### 5. Compilar e instalar dependencias
 
 ```bash
-go mod tidy
-go build -o discord-event-bot cmd/main.go
+./build.sh
 ```
 
 ### 6. Ejecutar el bot
@@ -92,27 +96,38 @@ El bot estará disponible en:
 ## 📦 Estructura del Proyecto
 
 ```
-discord-event-bot/
+Event-Manager-Bot-for-Guild-Masters/
 ├── cmd/
 │   └── main.go                 # Punto de entrada principal
 ├── config/
-│   └── env.go                  # Gestión de configuración
+│   └── env.go                  # Gestión de configuración y variables de entorno
 ├── internal/
 │   ├── discord/
-│   │   └── handler.go          # Lógica del bot de Discord
+│   │   ├── botInit.go          # Inicialización del bot de Discord y registro de handlers
+│   │   ├── config.go           # Configuración específica del bot de Discord
+│   │   ├── interactions.go     # Comandos slash y ruteo de interacciones
+│   │   ├── events.go           # Lógica de creación/listado/eliminación de eventos
+│   │   ├── messages.go         # Publicación y actualización de mensajes y botones
+│   │   ├── signup.go           # Manejo de inscripciones y cancelaciones
+│   │   ├── errors.go           # Helpers para respuestas de error
+│   │   └── reminders.go        # Servicio de recordatorios
 │   ├── storage/
-│   │   └── events.go           # Sistema de almacenamiento JSON
+│   │   ├── events.go           # Sistema de almacenamiento JSON de eventos
+│   │   └── templates.go        # Sistema de almacenamiento de templates
 │   └── web/
-│       ├── server.go           # Servidor web
-│       └── templates/          # Templates HTML
+│       ├── server.go           # Servidor web (panel de administración)
+│       └── templates/          # Templates HTML del panel
 │           ├── index.html
 │           ├── create_event.html
 │           ├── event_detail.html
 │           ├── events.html
+│           ├── templates.html
+│           ├── template_editor.html
 │           ├── config.html
 │           └── error.html
 ├── data/
-│   └── events/                 # Archivos JSON de eventos
+│   ├── events/                 # Archivos JSON de eventos
+│   └── templates/              # Archivos de templates (JSON/YAML)
 ├── go.mod                      # Dependencias de Go
 ├── .env.example                # Plantilla de configuración
 ├── discord-bot.service         # Archivo de servicio systemd
@@ -123,22 +138,25 @@ discord-event-bot/
 
 ### Comandos Slash Disponibles
 
-- `/create_event` - Crear un nuevo evento
+- `/create_event` - Crear un nuevo evento (y su hilo de discusión)
   - `nombre`: Nombre del evento
-  - `tipo`: Tipo (Raid, Dungeon, PvP, Social, etc.)
+  - `tipo`: Tipo de evento (Raid, Dungeon, PvP, Social, etc.)
   - `fecha`: Fecha y hora (formato: YYYY-MM-DD HH:MM)
   - `descripcion`: Descripción del evento
-  - `canal`: Canal donde publicar (opcional)
+  - `template`: Nombre del template a usar (opcional, debe coincidir con un template existente)
+  - `canal`: Canal donde se publicará el evento (opcional)
+  - `discord_event`: `true` para crear también el evento oficial de Discord (Guild Scheduled Event) si está habilitado globalmente
+  - `repeat_days`: Cada cuántos días se repite el evento (0 o vacío = no se repite)
 
-- `/delete_event` - Eliminar un evento existente
+- `/delete_event` - Eliminar un evento existente (borra el mensaje y archiva/cierra el hilo asociado)
   - `id`: ID del evento
 
-- `/remind_event` - Enviar recordatorio inmediato
+- `/remind_event` - Enviar recordatorio inmediato en el hilo del evento (o en el canal si no hay hilo)
   - `id`: ID del evento
 
 - `/list_events` - Listar todos los eventos activos
 
-- `/config` - Mostrar configuración actual del bot
+- `/config` - Mostrar configuración actual del bot (roles por defecto, zona horaria, etc.)
 
 ## 🌐 Panel Web
 
@@ -154,19 +172,26 @@ Credenciales por defecto (cámbialas en `.env`):
 
 - **Dashboard**: Vista de eventos activos
 - **Crear Evento**: Formulario para crear eventos desde el navegador
-- **Ver Eventos**: Lista completa de todos los eventos
-- **Detalles de Evento**: Ver inscripciones y confirmar participantes
+- **Ver Eventos**: Lista completa de todos los eventos (incluidos cancelados y completados)
+- **Detalles de Evento**: Ver inscripciones, confirmar participantes y ver el hilo asociado
+- **Templates**: Crear, editar, clonar, importar y exportar templates
+- **Limpieza de cancelados**: Botón para eliminar del sistema todos los eventos con estado *cancelled*
 - **Configuración**: Ver ajustes actuales del bot
 
 ## 🔧 Configuración Avanzada
 
 ### Personalizar Roles
 
-Edita la variable `DEFAULT_ROLES` en `.env`:
+Edita la variable `DEFAULT_ROLES` en `.env` (roles usados cuando creas un evento sin template):
 
 ```env
 DEFAULT_ROLES=[{"name":"Tank","emoji":"🛡️","limit":2},{"name":"Healer","emoji":"💚","limit":3},{"name":"DPS","emoji":"⚔️","limit":8},{"name":"Support","emoji":"🔮","limit":2}]
 ```
+
+Notas:
+- `limit` define el máximo de jugadores por rol.
+- Si `limit` es `0` o se omite, ese rol no tiene límite de jugadores (se muestra como `∞` / "Sin límite").
+- Los límites globales y por rol también pueden configurarse en los templates desde el panel web.
 
 ### Zona Horaria
 
@@ -182,33 +207,52 @@ Opciones comunes:
 - `America/Mexico_City`
 - `America/Santiago`
 
+### Eventos oficiales de Discord
+
+Controla si el bot puede crear **Guild Scheduled Events** cuando usas `/create_event` con `discord_event: true`:
+
+```env
+ENABLE_DISCORD_EVENTS=true
+```
+
+- `true`: permite crear eventos oficiales de Discord.
+- `false`: ignora la opción `discord_event` en los comandos y desde el panel web.
+
 ## 🖥️ Instalación en Raspberry Pi
 
-### 1. Compilar para ARM
+### Opción recomendada: script de despliegue automático
 
-En tu PC (compilación cruzada):
+En tu PC:
+
+```bash
+./deploy-pi.sh <IP_RASPBERRY_PI>
+```
+
+Este script:
+- Compila el binario para ARM (Raspberry Pi Zero 2 W y similares).
+- Copia el binario, los templates HTML y el servicio systemd.
+- (Opcionalmente) copia tu archivo `.env`.
+
+### Opción manual (compilación cruzada)
+
+En tu PC:
 
 ```bash
 GOOS=linux GOARCH=arm64 go build -o discord-event-bot cmd/main.go
+scp discord-event-bot pi@tu-raspberry-pi:/home/pi/discord-event-bot/discord-event-bot
+scp .env pi@tu-raspberry-pi:/home/pi/discord-event-bot/.env
 ```
 
-### 2. Transferir archivos
+En la Raspberry Pi, configurar como servicio systemd:
 
 ```bash
-scp discord-event-bot pi@tu-raspberry-pi:/home/pi/
-scp .env pi@tu-raspberry-pi:/home/pi/
-```
-
-### 3. Configurar como servicio systemd
-
-```bash
-sudo cp discord-bot.service /etc/systemd/system/
+sudo cp /home/pi/discord-event-bot/discord-bot.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable discord-bot
 sudo systemctl start discord-bot
 ```
 
-### 4. Verificar estado
+Verificar estado:
 
 ```bash
 sudo systemctl status discord-bot
@@ -251,8 +295,9 @@ El bot incluye un sistema completo de templates para eventos reutilizables. Ver 
 
 ### Características de Templates
 - 📝 Crear templates personalizados con roles y clases
-- 🎯 Definir cupos específicos por rol y clase
-- 🎨 Emojis personalizados para cada elemento
+- 🎯 Definir cupos específicos por rol (con desglose de inscripciones por clase)
+- ♾️ Soportar límites opcionales: `max_participants` y `limit` de rol en `0` = sin límite
+- 🎨 Emojis personalizados para cada elemento (incluyendo emojis personalizados de Discord en los botones)
 - 💾 Almacenamiento en JSON o YAML
 - 📥 Importar/Exportar templates
 - 🔄 Clonar y modificar templates existentes
@@ -307,7 +352,7 @@ chown pi:pi discord-event-bot
 
 ```bash
 git pull
-go build -o discord-event-bot cmd/main.go
+./build.sh
 sudo systemctl restart discord-bot
 ```
 

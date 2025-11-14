@@ -22,8 +22,8 @@ func InitBot() error {
 
 	// Registrar handlers de interacciones
 	Session.AddHandler(handleInteractionCreate)
-	Session.AddHandler(handleMessageReactionAdd)
-	Session.AddHandler(handleMessageReactionRemove)
+	// Session.AddHandler(handleMessageReactionAdd)
+	// Session.AddHandler(handleMessageReactionRemove)
 
 	// Necesitamos permisos para intents
 	Session.Identify.Intents = discordgo.IntentsGuildMessages |

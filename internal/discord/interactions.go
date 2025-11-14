@@ -1,6 +1,10 @@
 package discord
 
-import "github.com/bwmarrin/discordgo"
+import (
+	"strings"
+
+	"github.com/bwmarrin/discordgo"
+)
 
 var (
 	Session  *discordgo.Session
@@ -94,6 +98,16 @@ var (
 	}
 )
 
+// handleInteractionCreate maneja las interacciones de comandos slash
+func handleInteractionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	switch i.Type {
+	case discordgo.InteractionApplicationCommand:
+		handleSlashCommand(s, i)
+	case discordgo.InteractionMessageComponent:
+		handleButtonClick(s, i)
+	}
+}
+
 // handleSlashCommand procesa los comandos slash
 func handleSlashCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	commandName := i.ApplicationCommandData().Name
@@ -109,5 +123,33 @@ func handleSlashCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		handleConfig(s, i)
 	case "list_events":
 		handleListEvents(s, i)
+	}
+}
+
+// handleButtonClick maneja los clicks en botones
+func handleButtonClick(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	customID := i.MessageComponentData().CustomID
+
+	if strings.HasPrefix(customID, "signup_") {
+		payload := strings.TrimPrefix(customID, "signup_")
+		underscoreIdx := strings.Index(payload, "_")
+		if underscoreIdx == -1 {
+			return
+		}
+
+		eventID := payload[:underscoreIdx]
+		rest := payload[underscoreIdx+1:]
+
+		role := rest
+		class := ""
+		if sep := strings.Index(rest, "__"); sep != -1 {
+			role = rest[:sep]
+			class = rest[sep+2:]
+		}
+
+		handleSignup(s, i, eventID, role, class)
+	} else if strings.HasPrefix(customID, "cancel_") {
+		eventID := strings.TrimPrefix(customID, "cancel_")
+		handleCancelSignup(s, i, eventID)
 	}
 }
