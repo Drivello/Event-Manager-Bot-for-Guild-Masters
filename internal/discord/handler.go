@@ -293,8 +293,12 @@ func buildSignupsText(event *storage.Event) string {
 		signups := event.Signups[role.Name]
 
 		// Cabecera del rol con contador simple de inscriptos
-		builder.WriteString(fmt.Sprintf("%s **%s**: %d/%d\n",
-			role.Emoji, role.Name, len(signups), role.Limit))
+		limitText := "∞"
+		if role.Limit > 0 {
+			limitText = fmt.Sprintf("%d", role.Limit)
+		}
+		builder.WriteString(fmt.Sprintf("%s **%s**: %d/%s\n",
+			role.Emoji, role.Name, len(signups), limitText))
 
 		// Listado de nombres debajo del rol
 		for _, signup := range signups {
@@ -432,7 +436,7 @@ func handleSignup(s *discordgo.Session, i *discordgo.InteractionCreate, eventID,
 		}
 	}
 
-	if confirmedCount >= roleLimit {
+	if roleLimit > 0 && confirmedCount >= roleLimit {
 		respondError(s, i, fmt.Sprintf("El rol %s ya está lleno", role))
 		return
 	}

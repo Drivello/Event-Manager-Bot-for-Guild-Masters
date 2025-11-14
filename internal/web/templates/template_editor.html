@@ -225,14 +225,16 @@
                 </div>
 
                 <div class="grid-2">
-                    <div class="form-group">
-                        <label>Icono (Emoji)</label>
-                        <input type="text" id="icon" value="{{ if .template }}{{ .template.Icon }}{{ else }}⚔️{{ end }}">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Máximo de Participantes</label>
-                        <input type="number" id="maxParticipants" min="1" value="{{ if .template }}{{ .template.MaxParticipants }}{{ else }}20{{ end }}">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Icono (Emoji)</label>
+                            <input type="text" id="icon" value="{{ if .template }}{{ .template.Icon }}{{ else }}⚔️{{ end }}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Máximo de Participantes</label>
+                            <input type="number" id="maxParticipants" min="0" placeholder="0 = sin límite" value="{{ if .template }}{{ .template.MaxParticipants }}{{ else }}0{{ end }}">
+                        </div>
                     </div>
                 </div>
 
@@ -307,8 +309,8 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Límite de Jugadores</label>
-                        <input type="number" min="1" value="${role.limit}" onchange="updateRole(${roleIndex}, 'limit', parseInt(this.value))">
+                        <label>Límite de Jugadores (0 = sin límite)</label>
+                        <input type="number" min="0" value="${role.limit || 0}" onchange="updateRole(${roleIndex}, 'limit', this.value === '' ? 0 : parseInt(this.value))">
                     </div>
                     <h4>Clases/Especializaciones</h4>
                     <div id="classesContainer${roleIndex}"></div>
@@ -360,7 +362,7 @@
             roles.push({
                 name: 'Nuevo Rol',
                 emoji: '⚔️',
-                limit: 5,
+                limit: 0,
                 classes: []
             });
             renderRoles();
@@ -407,10 +409,11 @@
             roles.forEach(role => {
                 const roleDiv = document.createElement('div');
                 roleDiv.className = 'preview-role';
+                const limitText = role.limit && role.limit > 0 ? role.limit : '∞';
                 roleDiv.innerHTML = `
                     <span class="preview-role-emoji">${role.emoji}</span>
                     <span class="preview-role-name">${role.name}</span>
-                    <span class="preview-role-limit">0/${role.limit}</span>
+                    <span class="preview-role-limit">0/${limitText}</span>
                 `;
                 previewRoles.appendChild(roleDiv);
 
@@ -431,10 +434,16 @@
         document.getElementById('templateForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
+            const maxParticipantsValue = document.getElementById('maxParticipants').value;
+            let maxParticipants = parseInt(maxParticipantsValue);
+            if (isNaN(maxParticipants) || maxParticipants < 0) {
+                maxParticipants = 0;
+            }
+
             const template = {
                 name: document.getElementById('name').value,
                 icon: document.getElementById('icon').value,
-                max_participants: parseInt(document.getElementById('maxParticipants').value),
+                max_participants: maxParticipants,
                 description: document.getElementById('description').value,
                 allow_multi_signup: document.getElementById('allowMultiSignup').checked,
                 roles: roles

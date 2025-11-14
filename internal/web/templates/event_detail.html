@@ -186,7 +186,7 @@
 
             {{range .event.Roles}}
             <div class="role-group">
-                <div class="role-title">{{ .Emoji }} {{ .Name }} (Límite: {{ .Limit }})</div>
+                <div class="role-title">{{ .Emoji }} {{ .Name }} (Límite: {{ if gt .Limit 0 }}{{ .Limit }}{{ else }}Sin límite{{ end }})</div>
                 
                 {{$role := .Name}}
                 {{$signups := index $.event.Signups .Name}}

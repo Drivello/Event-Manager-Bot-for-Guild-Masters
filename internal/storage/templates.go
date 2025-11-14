@@ -228,10 +228,12 @@ func (ts *TemplateStore) validateTemplate(template *EventTemplate) error {
 		if role.Name == "" {
 			return fmt.Errorf("todos los roles deben tener nombre")
 		}
-		if role.Limit <= 0 {
-			return fmt.Errorf("el límite del rol %s debe ser mayor a 0", role.Name)
+		if role.Limit < 0 {
+			return fmt.Errorf("el límite del rol %s no puede ser negativo", role.Name)
 		}
-		totalLimit += role.Limit
+		if role.Limit > 0 {
+			totalLimit += role.Limit
+		}
 	}
 
 	if template.MaxParticipants > 0 && totalLimit > template.MaxParticipants {

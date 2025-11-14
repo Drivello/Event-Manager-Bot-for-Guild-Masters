@@ -219,7 +219,7 @@
 
                 <div class="template-stats">
                     <div class="stat">
-                        <div class="stat-value">{{ .MaxParticipants }}</div>
+                        <div class="stat-value">{{ if gt .MaxParticipants 0 }}{{ .MaxParticipants }}{{ else }}Sin límite{{ end }}</div>
                         <div class="stat-label">Max Jugadores</div>
                     </div>
                     <div class="stat">
@@ -233,7 +233,7 @@
                     <div class="role-item">
                         <span class="role-emoji">{{ .Emoji }}</span>
                         <span class="role-name">{{ .Name }}</span>
-                        <span class="role-limit">{{ .Limit }}</span>
+                        <span class="role-limit">{{ if gt .Limit 0 }}{{ .Limit }}{{ else }}∞{{ end }}</span>
                     </div>
                     {{ end }}
                 </div>

@@ -119,7 +119,7 @@
                 <select id="template" name="template">
                     <option value="">-- Sin template (usar roles por defecto) --</option>
                     {{range .templates}}
-                    <option value="{{.Name}}">{{.Icon}} {{.Name}} ({{.MaxParticipants}} jugadores)</option>
+                    <option value="{{.Name}}">{{.Icon}} {{.Name}} {{if gt .MaxParticipants 0}}({{.MaxParticipants}} jugadores){{else}}(sin límite){{end}}</option>
                     {{end}}
                 </select>
                 <div class="help-text">Selecciona un template predefinido o deja vacío para usar la configuración por defecto</div>
