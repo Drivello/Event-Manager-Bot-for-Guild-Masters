@@ -10,261 +10,538 @@
             padding: 0;
             box-sizing: border-box;
         }
+
+        :root {
+            --bg-primary: #0f1419;
+            --bg-secondary: #1a1f2e;
+            --bg-tertiary: #252b3b;
+            --bg-hover: #2d3548;
+            --accent-primary: #5865f2;
+            --accent-hover: #4752c4;
+            --accent-secondary: #3ba55d;
+            --text-primary: #ffffff;
+            --text-secondary: #b9bbbe;
+            --text-muted: #72767d;
+            --border-color: #2d3548;
+            --danger: #ed4245;
+            --radius: 8px;
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0a0e27;
+            color: #e4e6eb;
+            line-height: 1.6;
             min-height: 100vh;
-            padding: 20px;
         }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 400px;
-            gap: 20px;
-        }
-        .editor-panel, .preview-panel {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        .preview-panel {
+
+        .top-nav {
+            background: linear-gradient(135deg, #1a1f3a 0%, #0f1629 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 0 32px;
             position: sticky;
-            top: 20px;
-            max-height: calc(100vh - 40px);
-            overflow-y: auto;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
         }
-        h1, h2 {
-            color: #667eea;
-            margin-bottom: 20px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 600;
-        }
-        input[type="text"],
-        input[type="number"],
-        textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-        .role-section {
-            background: #f7fafc;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            border: 2px solid #e2e8f0;
-        }
-        .role-header {
+
+        .nav-container {
+            max-width: 1600px;
+            margin: 0 auto;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
-        }
-        .role-header h3 {
-            color: #333;
-            margin: 0;
-        }
-        .class-item {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #e2e8f0;
-        }
-        .class-header {
-            display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
+            height: 72px;
         }
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-        .btn-primary:hover {
-            background: #5568d3;
-        }
-        .btn-success {
-            background: #48bb78;
-            color: white;
-        }
-        .btn-success:hover {
-            background: #38a169;
-        }
-        .btn-danger {
-            background: #f56565;
-            color: white;
-        }
-        .btn-danger:hover {
-            background: #e53e3e;
-        }
-        .btn-small {
-            padding: 6px 12px;
-            font-size: 12px;
-        }
-        .actions {
+
+        .logo {
             display: flex;
-            gap: 10px;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 2px solid #e2e8f0;
-        }
-        .back-link {
-            display: inline-block;
-            margin-bottom: 20px;
-            color: white;
-            text-decoration: none;
-            font-size: 18px;
-        }
-        .back-link:hover {
-            text-decoration: underline;
-        }
-        .preview-embed {
-            background: #2c2f33;
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-        }
-        .preview-title {
+            align-items: center;
+            gap: 12px;
             font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 15px;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
         }
-        .preview-role {
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin: 10px 0;
-            padding: 10px;
-            background: #36393f;
-            border-radius: 6px;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
-        .preview-role-emoji {
-            font-size: 24px;
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+            align-items: center;
         }
-        .preview-role-name {
-            flex: 1;
-            font-weight: 600;
-        }
-        .preview-role-limit {
-            background: #667eea;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-        }
-        .preview-classes {
-            margin-left: 40px;
-            margin-top: 8px;
-        }
-        .preview-class {
+
+        .nav-link {
+            padding: 10px 18px;
+            border-radius: 8px;
+            color: #b4b7c9;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             gap: 8px;
-            margin: 5px 0;
-            font-size: 14px;
-            color: #b9bbbe;
         }
-        .grid-2 {
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+        }
+
+        .main-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 40px 32px;
+        }
+
+        .editor-layout {
+            display: grid;
+            grid-template-columns: 1fr 450px;
+            gap: 32px;
+        }
+
+        .editor-panel {
+            background: linear-gradient(135deg, rgba(26, 31, 58, 0.6) 0%, rgba(15, 22, 41, 0.4) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 40px;
+            max-height: calc(100vh - 140px);
+            overflow-y: auto;
+        }
+
+        .preview-panel {
+            position: sticky;
+            top: 112px;
+            height: fit-content;
+            max-height: calc(100vh - 144px);
+            overflow-y: auto;
+            background: linear-gradient(135deg, rgba(26, 31, 58, 0.6) 0%, rgba(15, 22, 41, 0.4) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 32px;
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 32px;
+            background: linear-gradient(135deg, #ffffff 0%, #b4b7c9 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #e4e6eb;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #e4e6eb;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: rgba(102, 126, 234, 0.5);
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-control::placeholder {
+            color: #7c8097;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 16px;
         }
+
+        .checkbox-wrapper {
+            margin-bottom: 24px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+        }
+
         .checkbox-group {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
+
         .checkbox-group input[type="checkbox"] {
             width: 20px;
             height: 20px;
             cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .role-section {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .role-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .role-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .class-item {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .class-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .class-header strong {
+            font-size: 15px;
+            color: #a5b4fc;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover::before {
+            opacity: 1;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #3ba55d;
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            background: #2d7d46;
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: #ed4245;
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            background: #c23234;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: #e4e6eb;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .btn-small {
+            padding: 8px 14px;
+            font-size: 13px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 40px;
+            padding-top: 32px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .preview-embed {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .preview-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        .preview-role {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+
+        .preview-role-emoji {
+            font-size: 26px;
+        }
+
+        .preview-role-name {
+            flex: 1;
+            font-weight: 600;
+            color: #e4e6eb;
+        }
+
+        .preview-role-limit {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+            color: #a5b4fc;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .preview-classes {
+            margin-left: 50px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        .preview-class {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 8px 0;
+            font-size: 14px;
+            color: #7c8097;
+        }
+
+        @media (max-width: 1200px) {
+            .editor-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .preview-panel {
+                position: static;
+                max-height: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .top-nav {
+                padding: 0 20px;
+            }
+
+            .nav-container {
+                height: 64px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .main-container {
+                padding: 24px 20px;
+            }
+
+            .editor-panel,
+            .preview-panel {
+                padding: 24px;
+            }
+
+            .page-title {
+                font-size: 24px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <a href="/templates" class="back-link">← Volver a Templates</a>
-    
-    <div class="container">
-        <div class="editor-panel">
-            <h1>{{ if eq .mode "create" }}Crear Nuevo Template{{ else }}Editar Template{{ end }}</h1>
-            
-            <form id="templateForm">
-                <div class="form-group">
-                    <label>Nombre del Template *</label>
-                    <input type="text" id="name" required {{ if eq .mode "edit" }}readonly{{ end }} value="{{ if .template }}{{ .template.Name }}{{ end }}">
-                </div>
+    <nav class="top-nav">
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <div class="logo-icon">🎮</div>
+                <span>MMO Events</span>
+            </a>
+            <div class="nav-links">
+                <a href="/" class="nav-link">
+                    <span>📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/events" class="nav-link">
+                    <span>📋</span>
+                    <span>Eventos</span>
+                </a>
+                <a href="/templates" class="nav-link active">
+                    <span>🎨</span>
+                    <span>Templates</span>
+                </a>
+                <a href="/config" class="nav-link">
+                    <span>⚙️</span>
+                    <span>Configuración</span>
+                </a>
+            </div>
+        </div>
+    </nav>
 
-                <div class="grid-2">
-                    <div class="grid-2">
+    <div class="main-container">
+        <div class="editor-layout">
+            <div class="editor-panel">
+                <h1 class="page-title">{{ if eq .mode "create" }}Crear Nuevo Template{{ else }}Editar Template{{ end }}</h1>
+                
+                <form id="templateForm">
+                    <div class="form-group">
+                        <label class="form-label">Nombre del Template *</label>
+                        <input type="text" id="name" class="form-control" required {{ if eq .mode "edit" }}readonly{{ end }} value="{{ if .template }}{{ .template.Name }}{{ end }}" placeholder="Ej: Raid 10 Jugadores">
+                    </div>
+
+                    <div class="form-grid">
                         <div class="form-group">
-                            <label>Icono (Emoji)</label>
-                            <input type="text" id="icon" value="{{ if .template }}{{ .template.Icon }}{{ else }}⚔️{{ end }}">
+                            <label class="form-label">Icono</label>
+                            <input type="text" id="icon" class="form-control" value="{{ if .template }}{{ .template.Icon }}{{ else }}⚔️{{ end }}" placeholder="⚔️">
                         </div>
                         
                         <div class="form-group">
-                            <label>Máximo de Participantes</label>
-                            <input type="number" id="maxParticipants" min="0" placeholder="0 = sin límite" value="{{ if .template }}{{ .template.MaxParticipants }}{{ else }}0{{ end }}">
+                            <label class="form-label">Max Participantes</label>
+                            <input type="number" id="maxParticipants" class="form-control" min="0" placeholder="0" value="{{ if .template }}{{ .template.MaxParticipants }}{{ else }}0{{ end }}">
                         </div>
                     </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Descripción</label>
+                        <textarea id="description" class="form-control" placeholder="Describe este template...">{{ if .template }}{{ .template.Description }}{{ end }}</textarea>
+                    </div>
+
+                    <div class="checkbox-wrapper">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="allowMultiSignup" {{ if .template }}{{ if .template.AllowMultiSignup }}checked{{ end }}{{ end }}>
+                            <label for="allowMultiSignup">Permitir multi-inscripción</label>
+                        </div>
+                    </div>
+
+                    <h2 class="section-title">Roles</h2>
+                    <div id="rolesContainer"></div>
+                    
+                    <button type="button" class="btn btn-success" onclick="addRole()">
+                        <span>➕</span>
+                        <span>Agregar Rol</span>
+                    </button>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" style="flex: 1;">
+                            <span>💾</span>
+                            <span>Guardar</span>
+                        </button>
+                        <a href="/templates" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+
+            <div class="preview-panel">
+                <h2 class="section-title">Vista Previa</h2>
+                <div class="preview-embed">
+                    <div class="preview-title">Cómo se verá en Discord</div>
+                    <div id="previewRoles"></div>
                 </div>
-
-                <div class="form-group">
-                    <label>Descripción</label>
-                    <textarea id="description">{{ if .template }}{{ .template.Description }}{{ end }}</textarea>
-                </div>
-
-                <div class="form-group checkbox-group">
-                    <input type="checkbox" id="allowMultiSignup" {{ if .template }}{{ if .template.AllowMultiSignup }}checked{{ end }}{{ end }}>
-                    <label for="allowMultiSignup" style="margin: 0;">Permitir inscripción múltiple</label>
-                </div>
-
-                <h2>Roles</h2>
-                <div id="rolesContainer"></div>
-                
-                <button type="button" class="btn btn-success" onclick="addRole()">➕ Agregar Rol</button>
-
-                <div class="actions">
-                    <button type="submit" class="btn btn-primary">💾 Guardar Template</button>
-                    <a href="/templates" class="btn btn-danger">❌ Cancelar</a>
-                </div>
-            </form>
-        </div>
-
-        <div class="preview-panel">
-            <h2>Vista Previa</h2>
-            <div id="preview" class="preview-embed">
-                <div class="preview-title">📅 Ejemplo de Evento</div>
-                <div id="previewRoles"></div>
             </div>
         </div>
     </div>
@@ -298,21 +575,21 @@
                         <h3>Rol ${roleIndex + 1}</h3>
                         <button type="button" class="btn btn-danger btn-small" onclick="removeRole(${roleIndex})">🗑️ Eliminar</button>
                     </div>
-                    <div class="grid-2">
+                    <div class="form-grid">
                         <div class="form-group">
-                            <label>Nombre del Rol</label>
-                            <input type="text" value="${role.name}" onchange="updateRole(${roleIndex}, 'name', this.value)">
+                            <label class="form-label">Nombre del Rol</label>
+                            <input type="text" class="form-control" value="${role.name}" onchange="updateRole(${roleIndex}, 'name', this.value)">
                         </div>
                         <div class="form-group">
-                            <label>Emoji</label>
-                            <input type="text" value="${role.emoji}" onchange="updateRole(${roleIndex}, 'emoji', this.value)">
+                            <label class="form-label">Emoji</label>
+                            <input type="text" class="form-control" value="${role.emoji}" onchange="updateRole(${roleIndex}, 'emoji', this.value)">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Límite de Jugadores (0 = sin límite)</label>
-                        <input type="number" min="0" value="${role.limit || 0}" onchange="updateRole(${roleIndex}, 'limit', this.value === '' ? 0 : parseInt(this.value))">
+                        <label class="form-label">Límite de Jugadores (0 = sin límite)</label>
+                        <input type="number" class="form-control" min="0" value="${role.limit || 0}" onchange="updateRole(${roleIndex}, 'limit', this.value === '' ? 0 : parseInt(this.value))">
                     </div>
-                    <h4>Clases/Especializaciones</h4>
+                    <h4 class="section-title">Clases/Especializaciones</h4>
                     <div id="classesContainer${roleIndex}"></div>
                     <button type="button" class="btn btn-success btn-small" onclick="addClass(${roleIndex})">➕ Agregar Clase</button>
                 `;
@@ -339,19 +616,19 @@
                         <strong>Clase ${classIndex + 1}</strong>
                         <button type="button" class="btn btn-danger btn-small" onclick="removeClass(${roleIndex}, ${classIndex})">🗑️</button>
                     </div>
-                    <div class="grid-2">
+                    <div class="form-grid">
                         <div class="form-group">
-                            <label>Nombre</label>
-                            <input type="text" value="${cls.name}" onchange="updateClass(${roleIndex}, ${classIndex}, 'name', this.value)">
+                            <label class="form-label">Nombre</label>
+                            <input type="text" class="form-control" value="${cls.name}" onchange="updateClass(${roleIndex}, ${classIndex}, 'name', this.value)">
                         </div>
                         <div class="form-group">
-                            <label>Emoji</label>
-                            <input type="text" value="${cls.emoji}" onchange="updateClass(${roleIndex}, ${classIndex}, 'emoji', this.value)">
+                            <label class="form-label">Emoji</label>
+                            <input type="text" class="form-control" value="${cls.emoji}" onchange="updateClass(${roleIndex}, ${classIndex}, 'emoji', this.value)">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Descripción (opcional)</label>
-                        <input type="text" value="${cls.description || ''}" onchange="updateClass(${roleIndex}, ${classIndex}, 'description', this.value)">
+                        <label class="form-label">Descripción (opcional)</label>
+                        <input type="text" class="form-control" value="${cls.description || ''}" onchange="updateClass(${roleIndex}, ${classIndex}, 'description', this.value)">
                     </div>
                 `;
                 container.appendChild(classDiv);
