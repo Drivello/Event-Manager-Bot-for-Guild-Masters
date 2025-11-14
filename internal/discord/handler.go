@@ -202,8 +202,10 @@ func PublishEventMessage(s *discordgo.Session, event *storage.Event) error {
 		if len(role.Classes) > 0 {
 			// Botones por clase dentro del rol
 			for _, class := range role.Classes {
+				emojiComponent, isCustomEmoji := parseComponentEmoji(class.Emoji)
+
 				label := class.Name
-				if class.Emoji != "" {
+				if !isCustomEmoji && class.Emoji != "" {
 					label = fmt.Sprintf("%s %s", class.Emoji, class.Name)
 				}
 
@@ -211,6 +213,9 @@ func PublishEventMessage(s *discordgo.Session, event *storage.Event) error {
 					Label:    label,
 					Style:    discordgo.PrimaryButton,
 					CustomID: fmt.Sprintf("signup_%s_%s__%s", event.ID, role.Name, class.Name),
+				}
+				if emojiComponent != nil {
+					button.Emoji = emojiComponent
 				}
 
 				currentRow.Components = append(currentRow.Components, button)
@@ -319,6 +324,41 @@ func buildSignupsText(event *storage.Event) string {
 	}
 
 	return builder.String()
+}
+
+func parseComponentEmoji(raw string) (*discordgo.ComponentEmoji, bool) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return nil, false
+	}
+
+	if strings.HasPrefix(raw, "<") && strings.HasSuffix(raw, ">") {
+		inner := strings.Trim(raw, "<>")
+		parts := strings.Split(inner, ":")
+		if len(parts) == 3 {
+			animated := parts[0] == "a"
+			name := parts[1]
+			id := parts[2]
+			if name != "" && id != "" {
+				return &discordgo.ComponentEmoji{
+					Name:     name,
+					ID:       id,
+					Animated: animated,
+				}, true
+			}
+		} else if len(parts) == 2 {
+			name := parts[0]
+			id := parts[1]
+			if name != "" && id != "" {
+				return &discordgo.ComponentEmoji{
+					Name: name,
+					ID:   id,
+				}, true
+			}
+		}
+	}
+
+	return nil, false
 }
 
 // handleButtonClick maneja los clicks en botones
@@ -513,8 +553,10 @@ func UpdateEventMessage(s *discordgo.Session, event *storage.Event) {
 		if len(role.Classes) > 0 {
 			// Botones por clase dentro del rol
 			for _, class := range role.Classes {
+				emojiComponent, isCustomEmoji := parseComponentEmoji(class.Emoji)
+
 				label := class.Name
-				if class.Emoji != "" {
+				if !isCustomEmoji && class.Emoji != "" {
 					label = fmt.Sprintf("%s %s", class.Emoji, class.Name)
 				}
 
@@ -522,6 +564,9 @@ func UpdateEventMessage(s *discordgo.Session, event *storage.Event) {
 					Label:    label,
 					Style:    discordgo.PrimaryButton,
 					CustomID: fmt.Sprintf("signup_%s_%s__%s", event.ID, role.Name, class.Name),
+				}
+				if emojiComponent != nil {
+					button.Emoji = emojiComponent
 				}
 
 				currentRow.Components = append(currentRow.Components, button)
