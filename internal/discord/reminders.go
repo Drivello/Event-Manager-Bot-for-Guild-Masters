@@ -38,6 +38,34 @@ func checkAndSendReminders() {
 			UpdateEventMessage(Session, event)
 		}
 	}
+
+	// Borrar mensajes/hilos cuando corresponde
+	for _, event := range result.EventsToDeleteMessages {
+		if Session == nil {
+			continue
+		}
+		// Eliminar mensaje principal
+		if event.MessageID != "" {
+			if err := Session.ChannelMessageDelete(event.Channel, event.MessageID); err != nil {
+				log.Printf("Error borrando mensaje del evento %s: %v", event.ID, err)
+			}
+		}
+		// Cerrar hilo asociado si existe
+		if event.ThreadID != "" {
+			archived := true
+			locked := true
+			if _, err := Session.ChannelEdit(event.ThreadID, &discordgo.ChannelEdit{Archived: &archived, Locked: &locked}); err != nil {
+				log.Printf("Error archivando hilo %s para evento %s: %v", event.ThreadID, event.ID, err)
+			}
+		}
+
+		// Limpiar referencias para permitir republicación futura (especialmente en recurrentes)
+		event.MessageID = ""
+		event.ThreadID = ""
+		if err := storage.Store.SaveEvent(event); err != nil {
+			log.Printf("Error guardando evento %s tras borrar mensaje/hilo: %v", event.ID, err)
+		}
+	}
 }
 
 func checkAndPublishScheduledEvents() {

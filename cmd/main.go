@@ -20,7 +20,7 @@ func main() {
 	}
 
 	// Inicializar almacenamiento
-	if err := storage.InitStore(); err != nil {
+	if err := storage.InitEventStore(); err != nil {
 		log.Fatalf("Error inicializando almacenamiento: %v", err)
 	}
 

@@ -27,7 +27,6 @@ func CreateDiscordScheduledEvent(s *discordgo.Session, event *storage.Event) {
 			Location: "In-Game",
 		},
 	}
-
 	discordEvent, err := s.GuildScheduledEventCreate(config.AppConfig.GuildID, params)
 	if err != nil {
 		log.Printf("Error creando evento de Discord: %v", err)
@@ -68,6 +67,20 @@ func handleCreateEvent(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if deOpt, ok := optionMap["discord_event"]; ok {
 		createDiscordEvent = deOpt.BoolValue()
 	}
+	reminderOffsetMinutes := 0
+	if rhOpt, ok := optionMap["reminder_minutes"]; ok {
+		v := int(rhOpt.IntValue())
+		if v > 0 {
+			reminderOffsetMinutes = v
+		}
+	}
+	deleteAfterHours := 0
+	if dahOpt, ok := optionMap["delete_after_hours"]; ok {
+		v := int(dahOpt.IntValue())
+		if v > 0 {
+			deleteAfterHours = v
+		}
+	}
 
 	// Template opcional
 	templateName := ""
@@ -96,16 +109,18 @@ func handleCreateEvent(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 
 	event, err := eventsvc.CreateEvent(eventsvc.CreateEventInput{
-		Name:               nombre,
-		Type:               tipo,
-		Description:        descripcion,
-		DateTime:           fecha,
-		ChannelID:          channelID,
-		RepeatEveryDays:    repeatEveryDays,
-		TemplateName:       templateName,
-		CreateDiscordEvent: createDiscordEvent,
-		CreatedBy:          i.Member.User.ID,
-		AnnounceHours:      announceHours,
+		Name:                  nombre,
+		Type:                  tipo,
+		Description:           descripcion,
+		DateTime:              fecha,
+		ChannelID:             channelID,
+		RepeatEveryDays:       repeatEveryDays,
+		TemplateName:          templateName,
+		CreateDiscordEvent:    createDiscordEvent,
+		CreatedBy:             i.Member.User.ID,
+		AnnounceHours:         announceHours,
+		ReminderOffsetMinutes: reminderOffsetMinutes,
+		DeleteAfterHours:      deleteAfterHours,
 	})
 	if err != nil {
 		log.Printf("Error creando evento: %v", err)

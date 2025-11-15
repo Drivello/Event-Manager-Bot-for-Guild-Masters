@@ -464,6 +464,34 @@
                     </div>
 
                     <div class="form-group">
+                        <label class="form-label">
+                            Minutos de antelación para enviar el recordatorio
+                        </label>
+                        <input 
+                            type="number" 
+                            name="reminder_minutes" 
+                            class="form-control" 
+                            min="0"
+                            placeholder="0 = usar valor global por defecto"
+                        >
+                        <span class="form-help">Si lo dejas en 0, se usará el offset global configurado en REMINDER_OFFSET_MINUTES.</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            Horas después del evento para borrar el mensaje
+                        </label>
+                        <input 
+                            type="number" 
+                            name="delete_after_hours" 
+                            class="form-control" 
+                            min="0"
+                            placeholder="0 = no borrar automáticamente"
+                        >
+                        <span class="form-help">Ejemplo: si pones 2, el mensaje y el hilo del evento se borrarán 2 horas después de la hora del evento.</span>
+                    </div>
+
+                    <div class="form-group">
                         <label class="form-label">Repetir cada N días</label>
                         <input 
                             type="number" 

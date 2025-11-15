@@ -67,6 +67,18 @@ var (
 					Description: "Horas de antelación para publicar el mensaje (0 = publicar al crearlo)",
 					Required:    false,
 				},
+				{
+					Type:        discordgo.ApplicationCommandOptionInteger,
+					Name:        "reminder_minutes",
+					Description: "Minutos de antelación para el recordatorio (0 = usar valor global)",
+					Required:    false,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionInteger,
+					Name:        "delete_after_hours",
+					Description: "Horas después del evento para borrar el mensaje (0 = no borrar)",
+					Required:    false,
+				},
 			},
 		},
 		{

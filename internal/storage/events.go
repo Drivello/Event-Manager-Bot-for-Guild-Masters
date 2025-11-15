@@ -15,27 +15,30 @@ const eventsDir = "data/events"
 
 // Event representa un evento del MMO
 type Event struct {
-	ID                 string              `json:"id"`
-	Name               string              `json:"name"`
-	Type               string              `json:"type"`
-	Description        string              `json:"description"`
-	DateTime           time.Time           `json:"datetime"`
-	AnnouncementTime   time.Time           `json:"announcement_time,omitempty"`
-	Channel            string              `json:"channel"`
-	MessageID          string              `json:"message_id"`
-	ThreadID           string              `json:"thread_id,omitempty"`
-	DiscordEventID     string              `json:"discord_event_id,omitempty"`
-	TemplateName       string              `json:"template_name,omitempty"`
-	Roles              []RoleSignup        `json:"roles"`
-	Signups            map[string][]Signup `json:"signups"`
-	ReminderSent       bool                `json:"reminder_sent"`
-	CreatedAt          time.Time           `json:"created_at"`
-	CreatedBy          string              `json:"created_by"`
-	AllowMultiSignup   bool                `json:"allow_multi_signup"`
-	Status             string              `json:"status"` // active, completed, cancelled
-	MaxParticipants    int                 `json:"max_participants,omitempty"`
-	RepeatEveryDays    int                 `json:"repeat_every_days,omitempty"`
-	CreateDiscordEvent bool                `json:"create_discord_event,omitempty"`
+	ID                      string              `json:"id"`
+	Name                    string              `json:"name"`
+	Type                    string              `json:"type"`
+	Description             string              `json:"description"`
+	DateTime                time.Time           `json:"datetime"`
+	AnnouncementTime        time.Time           `json:"announcement_time,omitempty"`
+	AnnouncementOffsetHours int                 `json:"announcement_offset_hours,omitempty"`
+	Channel                 string              `json:"channel"`
+	MessageID               string              `json:"message_id"`
+	ThreadID                string              `json:"thread_id,omitempty"`
+	DiscordEventID          string              `json:"discord_event_id,omitempty"`
+	TemplateName            string              `json:"template_name,omitempty"`
+	Roles                   []RoleSignup        `json:"roles"`
+	Signups                 map[string][]Signup `json:"signups"`
+	ReminderSent            bool                `json:"reminder_sent"`
+	CreatedAt               time.Time           `json:"created_at"`
+	CreatedBy               string              `json:"created_by"`
+	AllowMultiSignup        bool                `json:"allow_multi_signup"`
+	Status                  string              `json:"status"` // active, completed, cancelled
+	MaxParticipants         int                 `json:"max_participants,omitempty"`
+	RepeatEveryDays         int                 `json:"repeat_every_days,omitempty"`
+	CreateDiscordEvent      bool                `json:"create_discord_event,omitempty"`
+	ReminderOffsetMinutes   int                 `json:"reminder_offset_minutes,omitempty"`
+	DeleteAfterHours        int                 `json:"delete_after_hours,omitempty"`
 }
 
 // RoleSignup representa un rol disponible para el evento
@@ -73,7 +76,7 @@ type EventStore struct {
 var Store *EventStore
 
 // InitStore inicializa el almacenamiento de eventos
-func InitStore() error {
+func InitEventStore() error {
 	Store = &EventStore{
 		events: make(map[string]*Event),
 	}

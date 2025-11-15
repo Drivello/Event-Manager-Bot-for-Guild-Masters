@@ -54,9 +54,9 @@ func LoadConfig() error {
 
 	// Parsear roles por defecto
 	rolesJSON := getEnv("DEFAULT_ROLES", `[
-		{"name":"Tank","emoji":"🛡️","limit":2},
-		{"name":"DPS","emoji":"⚔️","limit":6},
-		{"name":"Healer","emoji":"💚","limit":2}
+		{"name":"Tank","emoji":"🛡️","limit":1},
+		{"name":"DPS","emoji":"⚔️","limit":3},
+		{"name":"Healer","emoji":"💚","limit":1}
 	]`)
 
 	if err := json.Unmarshal([]byte(rolesJSON), &config.DefaultRoles); err != nil {
@@ -69,14 +69,14 @@ func LoadConfig() error {
 	}
 
 	// Parsear límites por defecto
-	limitsJSON := getEnv("DEFAULT_LIMITS", `{"Tank":2,"DPS":6,"Healer":2}`)
+	limitsJSON := getEnv("DEFAULT_LIMITS", `{"Tank":1,"DPS":3,"Healer":1}`)
 	config.DefaultLimits = make(map[string]int)
 	if err := json.Unmarshal([]byte(limitsJSON), &config.DefaultLimits); err != nil {
 		log.Printf("Error parseando DEFAULT_LIMITS, usando valores por defecto: %v", err)
 		config.DefaultLimits = map[string]int{
-			"Tank":   2,
-			"DPS":    6,
-			"Healer": 2,
+			"Tank":   1,
+			"DPS":    3,
+			"Healer": 1,
 		}
 	}
 
@@ -98,6 +98,7 @@ func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
 	}
+	log.Printf("config: %s no definido, usando valor por defecto %q", key, defaultValue)
 	return defaultValue
 }
 
@@ -107,6 +108,11 @@ func getEnvAsInt(key string, defaultValue int) int {
 	if value, err := strconv.Atoi(valueStr); err == nil {
 		return value
 	}
+	if valueStr == "" {
+		log.Printf("config: %s no definido o vacío, usando valor por defecto %d", key, defaultValue)
+	} else {
+		log.Printf("config: %s tiene valor inválido %q, usando valor por defecto %d", key, valueStr, defaultValue)
+	}
 	return defaultValue
 }
 
@@ -115,6 +121,11 @@ func getEnvAsBool(key string, defaultValue bool) bool {
 	valueStr := getEnv(key, "")
 	if value, err := strconv.ParseBool(valueStr); err == nil {
 		return value
+	}
+	if valueStr == "" {
+		log.Printf("config: %s no definido o vacío, usando valor por defecto %t", key, defaultValue)
+	} else {
+		log.Printf("config: %s tiene valor inválido %q, usando valor por defecto %t", key, valueStr, defaultValue)
 	}
 	return defaultValue
 }

@@ -12,16 +12,19 @@ import (
 // CreateEventInput contiene los datos necesarios para crear un evento
 // independientemente de si viene de la web, Discord, etc.
 type CreateEventInput struct {
-	Name               string
-	Type               string
-	Description        string
-	DateTime           time.Time
-	ChannelID          string
-	RepeatEveryDays    int
-	TemplateName       string
-	CreateDiscordEvent bool
-	CreatedBy          string
-	AnnounceHours      int
+	Name                    string
+	Type                    string
+	Description             string
+	DateTime                time.Time
+	ChannelID               string
+	RepeatEveryDays         int
+	TemplateName            string
+	CreateDiscordEvent      bool
+	CreatedBy               string
+	AnnounceHours           int
+	ReminderOffsetMinutes   int
+	DeleteAfterHours        int
+	AnnouncementOffsetHours int
 }
 
 // CreateEvent aplica las reglas de negocio para crear un evento MMO
@@ -43,23 +46,27 @@ func CreateEvent(input CreateEventInput) (*storage.Event, error) {
 	}
 
 	event := &storage.Event{
-		ID:                 uuid.New().String(),
-		Name:               input.Name,
-		Type:               input.Type,
-		Description:        input.Description,
-		DateTime:           input.DateTime,
-		Channel:            input.ChannelID,
-		Status:             "active",
-		CreatedAt:          time.Now(),
-		CreatedBy:          input.CreatedBy,
-		AllowMultiSignup:   false,
-		Signups:            make(map[string][]storage.Signup),
-		RepeatEveryDays:    input.RepeatEveryDays,
-		CreateDiscordEvent: input.CreateDiscordEvent,
+		ID:                      uuid.New().String(),
+		Name:                    input.Name,
+		Type:                    input.Type,
+		Description:             input.Description,
+		DateTime:                input.DateTime,
+		Channel:                 input.ChannelID,
+		Status:                  "active",
+		CreatedAt:               time.Now(),
+		CreatedBy:               input.CreatedBy,
+		AllowMultiSignup:        false,
+		Signups:                 make(map[string][]storage.Signup),
+		RepeatEveryDays:         input.RepeatEveryDays,
+		CreateDiscordEvent:      input.CreateDiscordEvent,
+		ReminderOffsetMinutes:   input.ReminderOffsetMinutes,
+		DeleteAfterHours:        input.DeleteAfterHours,
+		AnnouncementOffsetHours: 0,
 	}
 
 	if announceHours > 0 {
 		event.AnnouncementTime = event.DateTime.Add(-time.Duration(announceHours) * time.Hour)
+		event.AnnouncementOffsetHours = announceHours
 	}
 
 	// Si se especificó un template, delegar en el store

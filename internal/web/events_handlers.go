@@ -48,6 +48,8 @@ func handleCreateEventPost(c *gin.Context) {
 	tipo := c.PostForm("tipo")
 	fechaStr := c.PostForm("fecha")
 	announceHoursStr := c.PostForm("announce_hours")
+	reminderMinutesStr := c.PostForm("reminder_minutes")
+	deleteAfterHoursStr := c.PostForm("delete_after_hours")
 	descripcion := c.PostForm("descripcion")
 	channel := c.PostForm("channel")
 	templateName := c.PostForm("template")
@@ -67,6 +69,20 @@ func handleCreateEventPost(c *gin.Context) {
 		}
 	}
 
+	reminderOffsetMinutes := 0
+	if reminderMinutesStr != "" {
+		if v, err := strconv.Atoi(reminderMinutesStr); err == nil && v > 0 {
+			reminderOffsetMinutes = v
+		}
+	}
+
+	deleteAfterHours := 0
+	if deleteAfterHoursStr != "" {
+		if v, err := strconv.Atoi(deleteAfterHoursStr); err == nil && v > 0 {
+			deleteAfterHours = v
+		}
+	}
+
 	templates := storage.Templates.GetAllTemplates()
 
 	// Parsear fecha
@@ -83,16 +99,18 @@ func handleCreateEventPost(c *gin.Context) {
 	}
 
 	event, err := eventsvc.CreateEvent(eventsvc.CreateEventInput{
-		Name:               nombre,
-		Type:               tipo,
-		Description:        descripcion,
-		DateTime:           fecha,
-		ChannelID:          channel,
-		RepeatEveryDays:    repeatEveryDays,
-		TemplateName:       templateName,
-		CreateDiscordEvent: createDiscordEvent,
-		CreatedBy:          "admin_web",
-		AnnounceHours:      announceHours,
+		Name:                  nombre,
+		Type:                  tipo,
+		Description:           descripcion,
+		DateTime:              fecha,
+		ChannelID:             channel,
+		RepeatEveryDays:       repeatEveryDays,
+		TemplateName:          templateName,
+		CreateDiscordEvent:    createDiscordEvent,
+		CreatedBy:             "admin_web",
+		AnnounceHours:         announceHours,
+		ReminderOffsetMinutes: reminderOffsetMinutes,
+		DeleteAfterHours:      deleteAfterHours,
 	})
 	if err != nil {
 		c.HTML(http.StatusBadRequest, "create_event.html", gin.H{

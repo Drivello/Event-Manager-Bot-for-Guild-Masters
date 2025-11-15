@@ -172,7 +172,7 @@ func (ts *TemplateStore) DeleteTemplate(name string) error {
 
 // LoadTemplates carga todos los templates desde disco
 func (ts *TemplateStore) LoadTemplates() error {
-	files, err := ioutil.ReadDir(templatesDir)
+	files, err := os.ReadDir(templatesDir)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil
@@ -187,7 +187,7 @@ func (ts *TemplateStore) LoadTemplates() error {
 		}
 
 		filename := filepath.Join(templatesDir, file.Name())
-		data, err := ioutil.ReadFile(filename)
+		data, err := os.ReadFile(filename)
 		if err != nil {
 			log.Printf("Error leyendo archivo %s: %v", filename, err)
 			continue
