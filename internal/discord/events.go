@@ -39,64 +39,7 @@ func CreateDiscordScheduledEvent(s *discordgo.Session, event *storage.Event) {
 
 // handleCreateEvent crea un nuevo evento
 func handleCreateEvent(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	options := i.ApplicationCommandData().Options
-	optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(options))
-	for _, opt := range options {
-		optionMap[opt.Name] = opt
-	}
-
-	nombre := optionMap["nombre"].StringValue()
-	tipo := optionMap["tipo"].StringValue()
-	fechaStr := optionMap["fecha"].StringValue()
-	descripcion := optionMap["descripcion"].StringValue()
-	announceHours := 0
-	if ahOpt, ok := optionMap["announce_hours"]; ok {
-		announceHours = int(ahOpt.IntValue())
-		if announceHours < 0 {
-			announceHours = 0
-		}
-	}
-	repeatEveryDays := 0
-	if repeatOpt, ok := optionMap["repeat_days"]; ok {
-		repeatEveryDays = int(repeatOpt.IntValue())
-		if repeatEveryDays < 0 {
-			repeatEveryDays = 0
-		}
-	}
-	createDiscordEvent := false
-	if deOpt, ok := optionMap["discord_event"]; ok {
-		createDiscordEvent = deOpt.BoolValue()
-	}
-	reminderOffsetMinutes := 0
-	if rhOpt, ok := optionMap["reminder_minutes"]; ok {
-		v := int(rhOpt.IntValue())
-		if v > 0 {
-			reminderOffsetMinutes = v
-		}
-	}
-	deleteAfterHours := 0
-	if dahOpt, ok := optionMap["delete_after_hours"]; ok {
-		v := int(dahOpt.IntValue())
-		if v > 0 {
-			deleteAfterHours = v
-		}
-	}
-
-	// Template opcional
-	templateName := ""
-	if tmpl, ok := optionMap["template"]; ok {
-		templateName = tmpl.StringValue()
-	}
-
-	// Canal por defecto es el canal actual
-	channelID := i.ChannelID
-	if canal, ok := optionMap["canal"]; ok {
-		channelID = canal.StringValue()
-	}
-
-	// Parsear fecha
-	loc, _ := time.LoadLocation(config.AppConfig.Timezone)
-	fecha, err := time.ParseInLocation("2006-01-02 15:04", fechaStr, loc)
+	input, err := buildCreateEventInputFromInteraction(i)
 	if err != nil {
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -108,20 +51,7 @@ func handleCreateEvent(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
-	event, err := eventsvc.CreateEvent(eventsvc.CreateEventInput{
-		Name:                  nombre,
-		Type:                  tipo,
-		Description:           descripcion,
-		DateTime:              fecha,
-		ChannelID:             channelID,
-		RepeatEveryDays:       repeatEveryDays,
-		TemplateName:          templateName,
-		CreateDiscordEvent:    createDiscordEvent,
-		CreatedBy:             i.Member.User.ID,
-		AnnounceHours:         announceHours,
-		ReminderOffsetMinutes: reminderOffsetMinutes,
-		DeleteAfterHours:      deleteAfterHours,
-	})
+	event, err := eventsvc.CreateEvent(input)
 	if err != nil {
 		log.Printf("Error creando evento: %v", err)
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
@@ -153,6 +83,90 @@ func handleCreateEvent(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			Flags:   discordgo.MessageFlagsEphemeral,
 		},
 	})
+}
+
+func buildCreateEventInputFromInteraction(i *discordgo.InteractionCreate) (eventsvc.CreateEventInput, error) {
+	options := i.ApplicationCommandData().Options
+	optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(options))
+	for _, opt := range options {
+		optionMap[opt.Name] = opt
+	}
+
+	nombre := optionMap["nombre"].StringValue()
+	tipo := optionMap["tipo"].StringValue()
+	fechaStr := optionMap["fecha"].StringValue()
+	descripcion := optionMap["descripcion"].StringValue()
+
+	announceHours := 0
+	if ahOpt, ok := optionMap["announce_hours"]; ok {
+		announceHours = int(ahOpt.IntValue())
+		if announceHours < 0 {
+			announceHours = 0
+		}
+	}
+
+	repeatEveryDays := 0
+	if repeatOpt, ok := optionMap["repeat_days"]; ok {
+		repeatEveryDays = int(repeatOpt.IntValue())
+		if repeatEveryDays < 0 {
+			repeatEveryDays = 0
+		}
+	}
+
+	createDiscordEvent := false
+	if deOpt, ok := optionMap["discord_event"]; ok {
+		createDiscordEvent = deOpt.BoolValue()
+	}
+
+	reminderOffsetMinutes := 0
+	if rhOpt, ok := optionMap["reminder_minutes"]; ok {
+		v := int(rhOpt.IntValue())
+		if v > 0 {
+			reminderOffsetMinutes = v
+		}
+	}
+
+	deleteAfterHours := 0
+	if dahOpt, ok := optionMap["delete_after_hours"]; ok {
+		v := int(dahOpt.IntValue())
+		if v > 0 {
+			deleteAfterHours = v
+		}
+	}
+
+	// Template opcional
+	templateName := ""
+	if tmpl, ok := optionMap["template"]; ok {
+		templateName = tmpl.StringValue()
+	}
+
+	// Canal por defecto es el canal actual
+	channelID := i.ChannelID
+	if canal, ok := optionMap["canal"]; ok {
+		channelID = canal.StringValue()
+	}
+
+	// Parsear fecha
+	loc, _ := time.LoadLocation(config.AppConfig.Timezone)
+	fecha, err := time.ParseInLocation("2006-01-02 15:04", fechaStr, loc)
+	if err != nil {
+		return eventsvc.CreateEventInput{}, err
+	}
+
+	return eventsvc.CreateEventInput{
+		Name:                  nombre,
+		Type:                  tipo,
+		Description:           descripcion,
+		DateTime:              fecha,
+		ChannelID:             channelID,
+		RepeatEveryDays:       repeatEveryDays,
+		TemplateName:          templateName,
+		CreateDiscordEvent:    createDiscordEvent,
+		CreatedBy:             i.Member.User.ID,
+		AnnounceHours:         announceHours,
+		ReminderOffsetMinutes: reminderOffsetMinutes,
+		DeleteAfterHours:      deleteAfterHours,
+	}, nil
 }
 
 // handleDeleteEvent elimina un evento

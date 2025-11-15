@@ -27,18 +27,28 @@ func StartReminderService() {
 func checkAndSendReminders() {
 	result := remindersvc.ProcessReminders(time.Now())
 
+	deliverReminders(result)
+	updateEventMessages(result)
+	cleanupEventMessages(result)
+}
+
+func deliverReminders(result remindersvc.ProcessResult) {
 	// Enviar recordatorios a través de Discord
 	for _, event := range result.EventsToRemind {
 		sendReminder(Session, event)
 	}
+}
 
+func updateEventMessages(result remindersvc.ProcessResult) {
 	// Actualizar mensajes en Discord para eventos recurrentes que cambiaron
 	for _, event := range result.EventsToUpdate {
 		if Session != nil && event.MessageID != "" {
 			UpdateEventMessage(Session, event)
 		}
 	}
+}
 
+func cleanupEventMessages(result remindersvc.ProcessResult) {
 	// Borrar mensajes/hilos cuando corresponde
 	for _, event := range result.EventsToDeleteMessages {
 		if Session == nil {
@@ -77,13 +87,7 @@ func checkAndPublishScheduledEvents() {
 	now := time.Now()
 
 	for _, event := range events {
-		if event.MessageID != "" {
-			continue
-		}
-		if event.AnnouncementTime.IsZero() {
-			continue
-		}
-		if now.Before(event.AnnouncementTime) {
+		if !shouldPublishScheduledEvent(event, now) {
 			continue
 		}
 
@@ -91,6 +95,26 @@ func checkAndPublishScheduledEvents() {
 			log.Printf("Error publicando mensaje programado para evento %s: %v", event.ID, err)
 		}
 	}
+}
+
+func shouldPublishScheduledEvent(event *storage.Event, now time.Time) bool {
+	if event.MessageID != "" {
+		return false
+	}
+	if event.AnnouncementTime.IsZero() {
+		return false
+	}
+	if now.Before(event.AnnouncementTime) {
+		return false
+	}
+	// Si el tiempo de borrado automático ya pasó, no volver a publicar el mensaje
+	if event.DeleteAfterHours > 0 {
+		deleteTime := event.DateTime.Add(time.Duration(event.DeleteAfterHours) * time.Hour)
+		if now.After(deleteTime) {
+			return false
+		}
+	}
+	return true
 }
 
 // handleRemindEvent envía recordatorio de un evento

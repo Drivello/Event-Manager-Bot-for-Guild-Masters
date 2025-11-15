@@ -44,6 +44,47 @@ func handleCreateEventPage(c *gin.Context) {
 
 // handleCreateEventPost procesa la creación de un evento
 func handleCreateEventPost(c *gin.Context) {
+	templates := storage.Templates.GetAllTemplates()
+
+	input, err := buildCreateEventInputFromForm(c)
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "create_event.html", gin.H{
+			"title":     "Crear Nuevo Evento",
+			"error":     "Formato de fecha inválido",
+			"roles":     config.AppConfig.DefaultRoles,
+			"templates": templates,
+		})
+		return
+	}
+
+	event, err := eventsvc.CreateEvent(input)
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "create_event.html", gin.H{
+			"title":     "Crear Nuevo Evento",
+			"error":     "Error creando evento: " + err.Error(),
+			"roles":     config.AppConfig.DefaultRoles,
+			"templates": templates,
+		})
+		return
+	}
+
+	// Publicar en Discord
+	if discord.Session != nil {
+		if event.AnnouncementTime.IsZero() || !event.AnnouncementTime.After(time.Now()) {
+			if err := discord.PublishEventMessage(discord.Session, event); err != nil {
+				log.Printf("Error publicando en Discord: %v", err)
+			}
+		}
+
+		if config.AppConfig.EnableDiscordEvents && event.CreateDiscordEvent {
+			discord.CreateDiscordScheduledEvent(discord.Session, event)
+		}
+	}
+
+	c.Redirect(http.StatusSeeOther, "/events/"+event.ID)
+}
+
+func buildCreateEventInputFromForm(c *gin.Context) (eventsvc.CreateEventInput, error) {
 	nombre := c.PostForm("nombre")
 	tipo := c.PostForm("tipo")
 	fechaStr := c.PostForm("fecha")
@@ -55,6 +96,7 @@ func handleCreateEventPost(c *gin.Context) {
 	templateName := c.PostForm("template")
 	repeatDaysStr := c.PostForm("repeat_days")
 	createDiscordEvent := c.PostForm("discord_event") == "1"
+
 	repeatEveryDays := 0
 	if repeatDaysStr != "" {
 		if v, err := strconv.Atoi(repeatDaysStr); err == nil && v > 0 {
@@ -83,22 +125,13 @@ func handleCreateEventPost(c *gin.Context) {
 		}
 	}
 
-	templates := storage.Templates.GetAllTemplates()
-
-	// Parsear fecha
 	loc, _ := time.LoadLocation(config.AppConfig.Timezone)
 	fecha, err := time.ParseInLocation("2006-01-02T15:04", fechaStr, loc)
 	if err != nil {
-		c.HTML(http.StatusBadRequest, "create_event.html", gin.H{
-			"title":     "Crear Nuevo Evento",
-			"error":     "Formato de fecha inválido",
-			"roles":     config.AppConfig.DefaultRoles,
-			"templates": templates,
-		})
-		return
+		return eventsvc.CreateEventInput{}, err
 	}
 
-	event, err := eventsvc.CreateEvent(eventsvc.CreateEventInput{
+	return eventsvc.CreateEventInput{
 		Name:                  nombre,
 		Type:                  tipo,
 		Description:           descripcion,
@@ -111,31 +144,7 @@ func handleCreateEventPost(c *gin.Context) {
 		AnnounceHours:         announceHours,
 		ReminderOffsetMinutes: reminderOffsetMinutes,
 		DeleteAfterHours:      deleteAfterHours,
-	})
-	if err != nil {
-		c.HTML(http.StatusBadRequest, "create_event.html", gin.H{
-			"title":     "Crear Nuevo Evento",
-			"error":     "Error creando evento: " + err.Error(),
-			"roles":     config.AppConfig.DefaultRoles,
-			"templates": templates,
-		})
-		return
-	}
-
-	// Publicar en Discord
-	if discord.Session != nil {
-		if event.AnnouncementTime.IsZero() || !event.AnnouncementTime.After(time.Now()) {
-			if err := discord.PublishEventMessage(discord.Session, event); err != nil {
-				log.Printf("Error publicando en Discord: %v", err)
-			}
-		}
-
-		if config.AppConfig.EnableDiscordEvents && event.CreateDiscordEvent {
-			discord.CreateDiscordScheduledEvent(discord.Session, event)
-		}
-	}
-
-	c.Redirect(http.StatusSeeOther, "/events/"+event.ID)
+	}, nil
 }
 
 // handleEventDetail muestra los detalles de un evento

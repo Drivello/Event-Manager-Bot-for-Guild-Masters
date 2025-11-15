@@ -148,26 +148,44 @@ func handleSlashCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 func handleButtonClick(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	customID := i.MessageComponentData().CustomID
 
-	if strings.HasPrefix(customID, "signup_") {
-		payload := strings.TrimPrefix(customID, "signup_")
-		underscoreIdx := strings.Index(payload, "_")
-		if underscoreIdx == -1 {
-			return
-		}
-
-		eventID := payload[:underscoreIdx]
-		rest := payload[underscoreIdx+1:]
-
-		role := rest
-		class := ""
-		if sep := strings.Index(rest, "__"); sep != -1 {
-			role = rest[:sep]
-			class = rest[sep+2:]
-		}
-
+	if eventID, role, class, ok := parseSignupCustomID(customID); ok {
 		handleSignup(s, i, eventID, role, class)
-	} else if strings.HasPrefix(customID, "cancel_") {
-		eventID := strings.TrimPrefix(customID, "cancel_")
+		return
+	}
+
+	if eventID, ok := parseCancelCustomID(customID); ok {
 		handleCancelSignup(s, i, eventID)
 	}
+}
+
+func parseSignupCustomID(customID string) (eventID, role, class string, ok bool) {
+	if !strings.HasPrefix(customID, "signup_") {
+		return "", "", "", false
+	}
+
+	payload := strings.TrimPrefix(customID, "signup_")
+	underscoreIdx := strings.Index(payload, "_")
+	if underscoreIdx == -1 {
+		return "", "", "", false
+	}
+
+	eventID = payload[:underscoreIdx]
+	rest := payload[underscoreIdx+1:]
+
+	role = rest
+	class = ""
+	if sep := strings.Index(rest, "__"); sep != -1 {
+		role = rest[:sep]
+		class = rest[sep+2:]
+	}
+
+	return eventID, role, class, true
+}
+
+func parseCancelCustomID(customID string) (eventID string, ok bool) {
+	if !strings.HasPrefix(customID, "cancel_") {
+		return "", false
+	}
+
+	return strings.TrimPrefix(customID, "cancel_"), true
 }

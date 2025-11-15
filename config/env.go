@@ -19,8 +19,6 @@ type Config struct {
 	Timezone              string
 	DefaultRoles          []Role
 	EnableDiscordEvents   bool
-	MaxReactions          int
-	DefaultLimits         map[string]int
 	ReminderOffsetMinutes int
 }
 
@@ -48,7 +46,6 @@ func LoadConfig() error {
 		Port:                  getEnv("PORT", "8080"),
 		Timezone:              getEnv("TIMEZONE", "America/Argentina/Buenos_Aires"),
 		EnableDiscordEvents:   getEnvAsBool("ENABLE_DISCORD_EVENTS", true),
-		MaxReactions:          getEnvAsInt("MAX_REACTIONS", 50),
 		ReminderOffsetMinutes: getEnvAsInt("REMINDER_OFFSET_MINUTES", 15),
 	}
 
@@ -65,18 +62,6 @@ func LoadConfig() error {
 			{Name: "Tank", Emoji: "🛡️", Limit: 2},
 			{Name: "DPS", Emoji: "⚔️", Limit: 6},
 			{Name: "Healer", Emoji: "💚", Limit: 2},
-		}
-	}
-
-	// Parsear límites por defecto
-	limitsJSON := getEnv("DEFAULT_LIMITS", `{"Tank":1,"DPS":3,"Healer":1}`)
-	config.DefaultLimits = make(map[string]int)
-	if err := json.Unmarshal([]byte(limitsJSON), &config.DefaultLimits); err != nil {
-		log.Printf("Error parseando DEFAULT_LIMITS, usando valores por defecto: %v", err)
-		config.DefaultLimits = map[string]int{
-			"Tank":   1,
-			"DPS":    3,
-			"Healer": 1,
 		}
 	}
 
