@@ -2,13 +2,13 @@ package discord
 
 import (
 	"discord-event-bot/config"
+	eventsvc "discord-event-bot/internal/services/events"
 	"discord-event-bot/internal/storage"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/google/uuid"
 )
 
 // CreateDiscordScheduledEvent crea un evento oficial de Discord
@@ -95,65 +95,28 @@ func handleCreateEvent(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
-	var announceTime time.Time
-	if announceHours > 0 {
-		announceTime = fecha.Add(-time.Duration(announceHours) * time.Hour)
-	}
-
-	// Crear evento base
-	event := &storage.Event{
-		ID:                 uuid.New().String(),
+	event, err := eventsvc.CreateEvent(eventsvc.CreateEventInput{
 		Name:               nombre,
 		Type:               tipo,
 		Description:        descripcion,
 		DateTime:           fecha,
-		AnnouncementTime:   announceTime,
-		Channel:            channelID,
-		Status:             "active",
-		CreatedAt:          time.Now(),
-		CreatedBy:          i.Member.User.ID,
-		AllowMultiSignup:   false,
-		Signups:            make(map[string][]storage.Signup),
+		ChannelID:          channelID,
 		RepeatEveryDays:    repeatEveryDays,
+		TemplateName:       templateName,
 		CreateDiscordEvent: createDiscordEvent,
-	}
-
-	// Si se especificó un template, usarlo
-	if templateName != "" {
-		event, err = storage.Store.CreateEventFromTemplate(templateName, event)
-		if err != nil {
-			log.Printf("Error usando template: %v", err)
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: "❌ Template no encontrado: " + templateName,
-					Flags:   discordgo.MessageFlagsEphemeral,
-				},
-			})
-			return
-		}
-	} else {
-		// Agregar roles por defecto
-		for _, role := range config.AppConfig.DefaultRoles {
-			event.Roles = append(event.Roles, storage.RoleSignup{
-				Name:  role.Name,
-				Emoji: role.Emoji,
-				Limit: role.Limit,
-			})
-		}
-
-		// Guardar evento
-		if err := storage.Store.SaveEvent(event); err != nil {
-			log.Printf("Error guardando evento: %v", err)
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: "❌ Error guardando el evento",
-					Flags:   discordgo.MessageFlagsEphemeral,
-				},
-			})
-			return
-		}
+		CreatedBy:          i.Member.User.ID,
+		AnnounceHours:      announceHours,
+	})
+	if err != nil {
+		log.Printf("Error creando evento: %v", err)
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "❌ Error creando el evento: " + err.Error(),
+				Flags:   discordgo.MessageFlagsEphemeral,
+			},
+		})
+		return
 	}
 
 	// Publicar mensaje del evento (inmediato o programado)

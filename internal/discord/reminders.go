@@ -1,7 +1,7 @@
 package discord
 
 import (
-	"discord-event-bot/config"
+	remindersvc "discord-event-bot/internal/services/reminders"
 	"discord-event-bot/internal/storage"
 	"fmt"
 	"log"
@@ -25,62 +25,15 @@ func StartReminderService() {
 
 // checkAndSendReminders verifica y envía recordatorios
 func checkAndSendReminders() {
-	events := storage.Store.GetActiveEvents()
-	now := time.Now()
+	result := remindersvc.ProcessReminders(time.Now())
 
-	for _, event := range events {
-		if event.RepeatEveryDays > 0 {
-			handleRecurringEventReminder(event, now)
-			continue
-		}
-
-		offsetMinutes := config.AppConfig.ReminderOffsetMinutes
-		if offsetMinutes <= 0 {
-			offsetMinutes = 15
-		}
-		reminderTime := event.DateTime.Add(-time.Duration(offsetMinutes) * time.Minute)
-
-		if now.After(reminderTime) && !event.ReminderSent {
-			sendReminder(Session, event)
-			event.ReminderSent = true
-			storage.Store.SaveEvent(event)
-		}
-
-		if now.After(event.DateTime.Add(2 * time.Hour)) {
-			event.Status = "completed"
-			storage.Store.SaveEvent(event)
-		}
-	}
-}
-
-func handleRecurringEventReminder(event *storage.Event, now time.Time) {
-	changed := false
-
-	for now.After(event.DateTime.Add(2 * time.Hour)) {
-		event.DateTime = event.DateTime.Add(time.Duration(event.RepeatEveryDays) * 24 * time.Hour)
-		event.ReminderSent = false
-		changed = true
+	// Enviar recordatorios a través de Discord
+	for _, event := range result.EventsToRemind {
+		sendReminder(Session, event)
 	}
 
-	offsetMinutes := config.AppConfig.ReminderOffsetMinutes
-	if offsetMinutes <= 0 {
-		offsetMinutes = 15
-	}
-
-	if !event.ReminderSent {
-		reminderTime := event.DateTime.Add(-time.Duration(offsetMinutes) * time.Minute)
-		windowStart := reminderTime.Add(-1 * time.Minute)
-		windowEnd := reminderTime.Add(1 * time.Minute)
-
-		if now.After(windowStart) && now.Before(windowEnd) {
-			sendReminder(Session, event)
-			event.ReminderSent = true
-			changed = true
-		}
-	}
-
-	if changed {
-		storage.Store.SaveEvent(event)
+	// Actualizar mensajes en Discord para eventos recurrentes que cambiaron
+	for _, event := range result.EventsToUpdate {
 		if Session != nil && event.MessageID != "" {
 			UpdateEventMessage(Session, event)
 		}
