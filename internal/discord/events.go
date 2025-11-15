@@ -50,6 +50,13 @@ func handleCreateEvent(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	tipo := optionMap["tipo"].StringValue()
 	fechaStr := optionMap["fecha"].StringValue()
 	descripcion := optionMap["descripcion"].StringValue()
+	announceHours := 0
+	if ahOpt, ok := optionMap["announce_hours"]; ok {
+		announceHours = int(ahOpt.IntValue())
+		if announceHours < 0 {
+			announceHours = 0
+		}
+	}
 	repeatEveryDays := 0
 	if repeatOpt, ok := optionMap["repeat_days"]; ok {
 		repeatEveryDays = int(repeatOpt.IntValue())
@@ -88,6 +95,11 @@ func handleCreateEvent(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
+	var announceTime time.Time
+	if announceHours > 0 {
+		announceTime = fecha.Add(-time.Duration(announceHours) * time.Hour)
+	}
+
 	// Crear evento base
 	event := &storage.Event{
 		ID:                 uuid.New().String(),
@@ -95,6 +107,7 @@ func handleCreateEvent(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		Type:               tipo,
 		Description:        descripcion,
 		DateTime:           fecha,
+		AnnouncementTime:   announceTime,
 		Channel:            channelID,
 		Status:             "active",
 		CreatedAt:          time.Now(),
@@ -143,9 +156,11 @@ func handleCreateEvent(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		}
 	}
 
-	// Publicar mensaje del evento
-	if err := PublishEventMessage(s, event); err != nil {
-		log.Printf("Error publicando mensaje: %v", err)
+	// Publicar mensaje del evento (inmediato o programado)
+	if event.AnnouncementTime.IsZero() || !event.AnnouncementTime.After(time.Now()) {
+		if err := PublishEventMessage(s, event); err != nil {
+			log.Printf("Error publicando mensaje: %v", err)
+		}
 	}
 
 	// Crear evento oficial de Discord solo si está habilitado globalmente y el evento lo requiere

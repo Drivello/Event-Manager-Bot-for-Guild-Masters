@@ -20,6 +20,7 @@ type Event struct {
 	Type               string              `json:"type"`
 	Description        string              `json:"description"`
 	DateTime           time.Time           `json:"datetime"`
+	AnnouncementTime   time.Time           `json:"announcement_time,omitempty"`
 	Channel            string              `json:"channel"`
 	MessageID          string              `json:"message_id"`
 	ThreadID           string              `json:"thread_id,omitempty"`

@@ -11,16 +11,17 @@ import (
 
 // Config contiene toda la configuración del bot
 type Config struct {
-	DiscordToken        string
-	GuildID             string
-	AdminUser           string
-	AdminPass           string
-	Port                string
-	Timezone            string
-	DefaultRoles        []Role
-	EnableDiscordEvents bool
-	MaxReactions        int
-	DefaultLimits       map[string]int
+	DiscordToken          string
+	GuildID               string
+	AdminUser             string
+	AdminPass             string
+	Port                  string
+	Timezone              string
+	DefaultRoles          []Role
+	EnableDiscordEvents   bool
+	MaxReactions          int
+	DefaultLimits         map[string]int
+	ReminderOffsetMinutes int
 }
 
 // Role representa un rol/clase del MMO
@@ -40,14 +41,15 @@ func LoadConfig() error {
 	}
 
 	config := &Config{
-		DiscordToken: getEnv("DISCORD_TOKEN", ""),
-		GuildID:      getEnv("GUILD_ID", ""),
-		AdminUser:    getEnv("ADMIN_USER", "admin"),
-		AdminPass:    getEnv("ADMIN_PASS", "admin123"),
-		Port:         getEnv("PORT", "8080"),
-		Timezone:     getEnv("TIMEZONE", "America/Argentina/Buenos_Aires"),
-		EnableDiscordEvents: getEnvAsBool("ENABLE_DISCORD_EVENTS", true),
-		MaxReactions:        getEnvAsInt("MAX_REACTIONS", 50),
+		DiscordToken:          getEnv("DISCORD_TOKEN", ""),
+		GuildID:               getEnv("GUILD_ID", ""),
+		AdminUser:             getEnv("ADMIN_USER", "admin"),
+		AdminPass:             getEnv("ADMIN_PASS", "admin123"),
+		Port:                  getEnv("PORT", "8080"),
+		Timezone:              getEnv("TIMEZONE", "America/Argentina/Buenos_Aires"),
+		EnableDiscordEvents:   getEnvAsBool("ENABLE_DISCORD_EVENTS", true),
+		MaxReactions:          getEnvAsInt("MAX_REACTIONS", 50),
+		ReminderOffsetMinutes: getEnvAsInt("REMINDER_OFFSET_MINUTES", 15),
 	}
 
 	// Parsear roles por defecto

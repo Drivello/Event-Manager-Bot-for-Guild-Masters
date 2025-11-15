@@ -1,6 +1,7 @@
 package discord
 
 import (
+	"discord-event-bot/config"
 	"discord-event-bot/internal/storage"
 	"fmt"
 	"log"
@@ -16,6 +17,7 @@ func StartReminderService() {
 	go func() {
 		for range ticker.C {
 			checkAndSendReminders()
+			checkAndPublishScheduledEvents()
 		}
 	}()
 	log.Println("✅ Servicio de recordatorios iniciado")
@@ -32,7 +34,11 @@ func checkAndSendReminders() {
 			continue
 		}
 
-		reminderTime := event.DateTime.Add(-15 * time.Minute)
+		offsetMinutes := config.AppConfig.ReminderOffsetMinutes
+		if offsetMinutes <= 0 {
+			offsetMinutes = 15
+		}
+		reminderTime := event.DateTime.Add(-time.Duration(offsetMinutes) * time.Minute)
 
 		if now.After(reminderTime) && !event.ReminderSent {
 			sendReminder(Session, event)
@@ -56,9 +62,15 @@ func handleRecurringEventReminder(event *storage.Event, now time.Time) {
 		changed = true
 	}
 
+	offsetMinutes := config.AppConfig.ReminderOffsetMinutes
+	if offsetMinutes <= 0 {
+		offsetMinutes = 15
+	}
+
 	if !event.ReminderSent {
-		windowStart := event.DateTime.Add(-1 * time.Minute)
-		windowEnd := event.DateTime.Add(1 * time.Minute)
+		reminderTime := event.DateTime.Add(-time.Duration(offsetMinutes) * time.Minute)
+		windowStart := reminderTime.Add(-1 * time.Minute)
+		windowEnd := reminderTime.Add(1 * time.Minute)
 
 		if now.After(windowStart) && now.Before(windowEnd) {
 			sendReminder(Session, event)
@@ -71,6 +83,31 @@ func handleRecurringEventReminder(event *storage.Event, now time.Time) {
 		storage.Store.SaveEvent(event)
 		if Session != nil && event.MessageID != "" {
 			UpdateEventMessage(Session, event)
+		}
+	}
+}
+
+func checkAndPublishScheduledEvents() {
+	if Session == nil {
+		return
+	}
+
+	events := storage.Store.GetActiveEvents()
+	now := time.Now()
+
+	for _, event := range events {
+		if event.MessageID != "" {
+			continue
+		}
+		if event.AnnouncementTime.IsZero() {
+			continue
+		}
+		if now.Before(event.AnnouncementTime) {
+			continue
+		}
+
+		if err := PublishEventMessage(Session, event); err != nil {
+			log.Printf("Error publicando mensaje programado para evento %s: %v", event.ID, err)
 		}
 	}
 }

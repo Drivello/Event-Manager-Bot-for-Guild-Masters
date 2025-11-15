@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ .title }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
         /* Sistema de diseño moderno consistente */
         * {
@@ -440,11 +441,26 @@
                             Fecha y Hora<span class="required">*</span>
                         </label>
                         <input 
-                            type="datetime-local" 
+                            type="text" 
+                            id="fecha" 
                             name="fecha" 
                             class="form-control" 
                             required
                         >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            Horas de antelación para publicar el mensaje
+                        </label>
+                        <input 
+                            type="number" 
+                            name="announce_hours" 
+                            class="form-control" 
+                            min="0"
+                            placeholder="0 = publicar inmediatamente"
+                        >
+                        <span class="form-help">Ejemplo: si el evento es a las 22:00 y pones 2, el mensaje se publicará a las 20:00.</span>
                     </div>
 
                     <div class="form-group">
@@ -508,5 +524,22 @@
             </form>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            flatpickr('#fecha', {
+                allowInput: true,
+                enableTime: true,
+                dateFormat: 'Y-m-d\\TH:i',
+                altInput: true,
+                altFormat: 'd/m/Y H:i',
+                locale: {
+                    firstDayOfWeek: 1
+                },
+                time_24hr: true
+            });
+        });
+    </script>
 </body>
 </html>

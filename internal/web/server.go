@@ -99,6 +99,7 @@ func handleCreateEventPost(c *gin.Context) {
 	nombre := c.PostForm("nombre")
 	tipo := c.PostForm("tipo")
 	fechaStr := c.PostForm("fecha")
+	announceHoursStr := c.PostForm("announce_hours")
 	descripcion := c.PostForm("descripcion")
 	channel := c.PostForm("channel")
 	templateName := c.PostForm("template")
@@ -108,6 +109,13 @@ func handleCreateEventPost(c *gin.Context) {
 	if repeatDaysStr != "" {
 		if v, err := strconv.Atoi(repeatDaysStr); err == nil && v > 0 {
 			repeatEveryDays = v
+		}
+	}
+
+	announceHours := 0
+	if announceHoursStr != "" {
+		if v, err := strconv.Atoi(announceHoursStr); err == nil && v > 0 {
+			announceHours = v
 		}
 	}
 
@@ -126,6 +134,11 @@ func handleCreateEventPost(c *gin.Context) {
 		return
 	}
 
+	var announceTime time.Time
+	if announceHours > 0 {
+		announceTime = fecha.Add(-time.Duration(announceHours) * time.Hour)
+	}
+
 	// Crear evento base
 	event := &storage.Event{
 		ID:                 uuid.New().String(),
@@ -133,6 +146,7 @@ func handleCreateEventPost(c *gin.Context) {
 		Type:               tipo,
 		Description:        descripcion,
 		DateTime:           fecha,
+		AnnouncementTime:   announceTime,
 		Channel:            channel,
 		Status:             "active",
 		CreatedAt:          time.Now(),
@@ -179,8 +193,10 @@ func handleCreateEventPost(c *gin.Context) {
 
 	// Publicar en Discord
 	if discord.Session != nil {
-		if err := discord.PublishEventMessage(discord.Session, event); err != nil {
-			log.Printf("Error publicando en Discord: %v", err)
+		if event.AnnouncementTime.IsZero() || !event.AnnouncementTime.After(time.Now()) {
+			if err := discord.PublishEventMessage(discord.Session, event); err != nil {
+				log.Printf("Error publicando en Discord: %v", err)
+			}
 		}
 
 		if config.AppConfig.EnableDiscordEvents && event.CreateDiscordEvent {

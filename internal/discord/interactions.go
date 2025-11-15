@@ -61,6 +61,12 @@ var (
 					Description: "Cada cuántos días se repite el evento (0 o vacío = no se repite)",
 					Required:    false,
 				},
+				{
+					Type:        discordgo.ApplicationCommandOptionInteger,
+					Name:        "announce_hours",
+					Description: "Horas de antelación para publicar el mensaje (0 = publicar al crearlo)",
+					Required:    false,
+				},
 			},
 		},
 		{
