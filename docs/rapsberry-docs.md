@@ -448,4 +448,74 @@ bash: ./discord-event-bot: cannot execute binary file: Exec format error
 
 ---
 
+### 7. Error `Permission denied` al arrancar el servicio
+
+**Síntomas:**
+
+```text
+discord-bot.service: Unable to locate executable '/home/<usuario>/event-manager-bot/discord-event-bot': Permission denied
+discord-bot.service: Failed at step EXEC spawning ...: Permission denied
+code=exited, status=203/EXEC
+```
+
+**Causas posibles:**
+
+- El binario existe pero **sin bit de ejecución** (`-rw-r--r--` en lugar de `-rwxr-xr-x`).
+- El usuario configurado en `User=` no tiene permisos para entrar en el directorio (por ejemplo `/home/<usuario>` con permisos demasiado restrictivos).
+
+**Solución:**
+
+1. Comprueba permisos del binario:
+
+   ```bash
+   ls -l /home/<usuario>/event-manager-bot/discord-event-bot
+   chmod +x /home/<usuario>/event-manager-bot/discord-event-bot
+   ```
+
+2. Comprueba permisos de directorios:
+
+   ```bash
+   ls -ld /home/<usuario> /home/<usuario>/event-manager-bot
+   ```
+
+   Si el servicio corre como otro usuario distinto, asegúrate de que pueda acceder a esas rutas o mueve el binario a un directorio como `/opt/discord-event-bot` y ajusta `ExecStart`/`WorkingDirectory`.
+
+3. Recarga y reinicia systemd:
+
+   ```bash
+   sudo systemctl daemon-reload
+   sudo systemctl restart discord-bot
+   ```
+
+---
+
+### 8. El bot arranca pero la web no muestra los cambios nuevos
+
+**Síntomas:**
+
+- Has recompilado y desplegado un binario nuevo.
+- El servicio arranca correctamente y los logs son normales.
+- Pero en el panel web **no aparecen opciones nuevas** (por ejemplo, nuevos campos en el formulario de creación de eventos).
+
+**Causa:**
+
+- Los cambios de interfaz suelen estar en los **templates HTML**, que **no se compilan** dentro del binario. Si solo copias el binario a la Raspberry y no actualizas `internal/web/templates`, verás la UI vieja.
+
+**Solución:**
+
+1. Desde tu PC, copia los templates actualizados a la Raspberry:
+
+   ```bash
+   scp -r internal/web/templates/* \
+       <usuario>@<ip_raspberry>:/home/<usuario>/event-manager-bot/internal/web/templates/
+   ```
+
+2. Reinicia el servicio:
+
+   ```bash
+   sudo systemctl restart discord-bot
+   ```
+
+---
+
 Con esta guía deberías poder desplegar, actualizar y depurar el bot en una Raspberry Pi de forma fiable. Si encuentras un caso nuevo, documenta el mensaje de error y los pasos realizados para poder extender esta sección de troubleshooting.

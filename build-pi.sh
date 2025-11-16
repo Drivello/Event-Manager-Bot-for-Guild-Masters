@@ -11,9 +11,10 @@ if [ $? -eq 0 ]; then
     echo "✅ Compilación exitosa para ARM64"
     echo "📦 Binario: discord-event-bot-arm64"
     echo ""
-    echo "Para transferir a Raspberry Pi:"
-    echo "  scp discord-event-bot-arm64 pi@<IP>:/home/pi/discord-event-bot"
-    echo "  scp .env pi@<IP>:/home/pi/"
+    echo "Para desplegar en Raspberry Pi de forma automática puedes usar:"
+    echo "  ./deploy-pi.sh <USUARIO_RPI> <IP_RPI>"
+    echo "Ejemplo:"
+    echo "  ./deploy-pi.sh pi 192.168.0.82"
 else
     echo "❌ Error en la compilación"
     exit 1
